@@ -41,18 +41,27 @@
 <body>
 <h1>Please CLI</h1>
 <p>An AI helper script to create CLI commands.</p>
+
+<h2>Installation</h2>
+
+Using Homebrew:
+<pre><code>brew tap TNG/please
+brew install please
+</code></pre>
+
 <h2>Usage</h2>
-<pre><code>./please.sh &lt;command&gt;
+<pre><code>please &lt;command&gt;
 </code></pre>
 <p>This will call GPT to generate a Linux command based on your input.</p>
-<pre><code>./please.sh list all files smaller than 1MB in the current folder, sort them by size and show their name and line count
+<pre><code>&gt; please list all files smaller than 1MB in the current folder, sort them by size \
+         and show their name and line count
 🔡 Command:
 find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1
 
 ❗ What should I do? [use arrow keys to navigate]
-> Execute
-Copy to clipboard
-Cancel
+&gt; Execute
+  Copy to clipboard
+  Cancel
 </code></pre>
 <p>Parameters:</p>
 <ul>
@@ -68,6 +77,13 @@ Cancel
 <ul>
     <li>either via an ENV variable OPENAI_API_KEY</li>
     <li>via a keychain entry OPENAI_API_KEY (MacOS keychain and secret-tool on Linux are supported)</li>
+</ul>
+
+<h2>Links to the repos</h2>
+
+<ul>
+    <li><a href=https://github.com/TNG/please-cli">Please CLI Github Repo</a></li>
+    <li><a href="https://github.com/TNG/homebrew-please">Homebrew Tap Github Repo</a></li>
 </ul>
 
 <h2>License</h2>
