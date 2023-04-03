@@ -5,12 +5,12 @@ An AI helper script to create CLI commands.
 ## Usage
 
 ```bash
-please <command>
+./please.sh <command>
 ```
 This will call GPT to generate a Linux command based on your input.
 
 ```bash
-please list all files smaller than 1MB in the current folder, sort them by size and show their name and line count
+./please.sh list all files smaller than 1MB in the current folder, sort them by size and show their name and line count
 🔡 Command:
   find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1
 
