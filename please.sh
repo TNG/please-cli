@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 model='gpt-4'
 optionExecute="Execute"
 optionCopy="Copy to clipboard"
@@ -124,11 +126,11 @@ perform_openai_request() {
        -d "${payload}" \
        --silent)
   response=(${response[@]})
-  httpStatus=${response[${#response[@]}-1]}
+  httpStatus="${response[${#response[@]}-1]}"
   result=${response[@]::${#response[@]}-1}
 
   if [ "${httpStatus}" -ne 200 ]; then
-    echo "Error: Received HTTP status ${httpStatus}"
+    >&2 echo "Error: Received HTTP status ${httpStatus}"
     exit 1
   else
     message=$(echo "${result}" | jq '.choices[0].message.content' --raw-output)
@@ -159,10 +161,10 @@ choose_action() {
           read -rsn1 tmp
           case "$tmp" in
             "A") # Up arrow
-              menu_state=$(expr $menu_state - 1 % 3)
+              menu_state=$(( $menu_state - 1 % 3 ))
               ;;
             "B") # Down arrow
-              menu_state=$(expr $menu_state + 1 % 3)
+              menu_state=$(( $menu_state + 1 % 3 ))
               ;;
           esac
         fi
@@ -198,11 +200,11 @@ display_menu() {
 }
 
 act_on_action() {
-  if [ $menu_state -eq 1 ]; then
+  if [ "$menu_state" -eq 1 ]; then
     echo "Executing ..."
     echo ""
     execute_command
-  elif [ $menu_state -eq 2 ]; then
+  elif [ "$menu_state" -eq 2 ]; then
     echo "Copying to clipboard ..."
     copy_to_clipboard
   else
@@ -220,7 +222,11 @@ copy_to_clipboard() {
       echo -n "${command}" | pbcopy
       ;;
     Linux*)
-      echo -n "${command}" | xclip -selection clipboard
+      if [ "$XDG_SESSION_TYPE" == "wayland" ]; then
+        echo -n "${command}" | wl-copy --primary
+      else
+        echo -n "${command}" | xclip -selection clipboard
+      fi
       ;;
     *)
       echo "Unsupported operating system"
