@@ -74,10 +74,7 @@ check_args() {
   done
 
   # Save remaining arguments to a string
-  commandDescription=""
-  for arg in "$@"; do
-    commandDescription+="$arg "
-  done
+  commandDescription="$*"
 }
 
 display_help() {
@@ -95,12 +92,11 @@ display_help() {
 
 get_command() {
   role="You translate the input given into Linux command. You may not use natural language, but only a Linux commands as answer."
-  prompt="${commandDescription}"
 
-  payload="{
-    \"model\": \"${model}\",
-    \"messages\": [{\"role\": \"system\", \"content\": \"${role}\"}, {\"role\": \"user\", \"content\": \"${prompt}\"}]
-  }"
+  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
+    model: "'"$model"'",
+    messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
+  }')
 
   command=$(perform_openai_request)
 }
@@ -108,11 +104,11 @@ get_command() {
 explain_command() {
   prompt="Explain what the command ${command} does. Don't be too verbose."
 
-  payload="{
-    \"max_tokens\": 100,
-    \"model\": \"${model}\",
-    \"messages\": [{\"role\": \"user\", \"content\": \"${prompt}\"}]
-  }"
+  payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
+    max_tokens: 100,
+    model: "'"$model"'",
+    messages: [{ role: "user", content: . }]
+  }')
 
   explanation=$(perform_openai_request)
 }
