@@ -10,7 +10,7 @@ optionCancel="Cancel"
 explain=0
 
 initialized=0
-menu_state=1
+selected_option_index=0
 
 yellow='\e[33m'
 cyan='\e[36m'
@@ -161,10 +161,10 @@ choose_action() {
           read -rsn1 tmp
           case "$tmp" in
             "A") # Up arrow
-              menu_state=$(( $menu_state - 1 % 3 ))
+              selected_option_index=$(( (selected_option_index + 2) % 3 ))
               ;;
             "B") # Down arrow
-              menu_state=$(( $menu_state + 1 % 3 ))
+              selected_option_index=$(( (selected_option_index + 1) % 3 ))
               ;;
           esac
         fi
@@ -184,11 +184,11 @@ display_menu() {
     initialized=1
   fi
 
-  if [ $menu_state -eq 1 ]; then
+  if [ $selected_option_index -eq 0 ]; then
     echo "> $optionExecute"
     echo "  $optionCopy"
     echo "  $optionCancel"
-  elif [ $menu_state -eq 2 ]; then
+  elif [ $selected_option_index -eq 1 ]; then
     echo "  $optionExecute"
     echo "> $optionCopy"
     echo "  $optionCancel"
@@ -200,11 +200,11 @@ display_menu() {
 }
 
 act_on_action() {
-  if [ "$menu_state" -eq 1 ]; then
+  if [ "$selected_option_index" -eq 0 ]; then
     echo "Executing ..."
     echo ""
     execute_command
-  elif [ "$menu_state" -eq 2 ]; then
+  elif [ "$selected_option_index" -eq 1 ]; then
     echo "Copying to clipboard ..."
     copy_to_clipboard
   else
