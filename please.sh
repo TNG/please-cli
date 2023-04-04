@@ -3,9 +3,8 @@
 set -euo pipefail
 
 model='gpt-4'
-optionExecute="Execute"
-optionCopy="Copy to clipboard"
-optionCancel="Cancel"
+options=("Execute" "Copy to clipboard" "Cancel")
+number_of_options=${#options[@]}
 
 explain=0
 
@@ -171,10 +170,10 @@ choose_action() {
           read -rsn1 tmp
           case "$tmp" in
             "A") # Up arrow
-              selected_option_index=$(( (selected_option_index + 2) % 3 ))
+              selected_option_index=$(( (selected_option_index - 1 + number_of_options) % number_of_options ))
               ;;
             "B") # Down arrow
-              selected_option_index=$(( (selected_option_index + 1) % 3 ))
+              selected_option_index=$(( (selected_option_index + 1) % number_of_options ))
               ;;
           esac
         fi
@@ -188,25 +187,18 @@ choose_action() {
 
 display_menu() {
   if [ $initialized -eq 1 ]; then
-    # Go up three lines
-    printf "\033[3A"
+    # Go up n lines
+    printf "\033[%dA" "$number_of_options"
   else
     initialized=1
   fi
 
-  if [ $selected_option_index -eq 0 ]; then
-    echo "> $optionExecute"
-    echo "  $optionCopy"
-    echo "  $optionCancel"
-  elif [ $selected_option_index -eq 1 ]; then
-    echo "  $optionExecute"
-    echo "> $optionCopy"
-    echo "  $optionCancel"
-  else
-    echo "  $optionExecute"
-    echo "  $optionCopy"
-    echo "> $optionCancel"
-  fi
+  index=0
+  for option in "${options[@]}"; do
+    (( index == selected_option_index )) && marker=">" || marker=" "
+    echo "$marker $option"
+    (( ++index ))
+  done
 }
 
 act_on_action() {
