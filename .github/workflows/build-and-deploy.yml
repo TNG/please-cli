@@ -1,0 +1,71 @@
+name: Build and Publish Please CLI APT Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup dpkg-dev
+        run: sudo apt-get install -y dpkg-dev gnupg2 dpkg-sig apt-utils
+
+      - name: Setup GPG
+        env:
+          PRIVATE_GPG_KEY: ${{ secrets.PRIVATE_GPG_KEY }}
+          PUBLIC_GPG_KEY: ${{ secrets.PUBLIC_GPG_KEY }}
+        run: |
+          echo "$PRIVATE_GPG_KEY" | gpg --import
+          echo "$PUBLIC_GPG_KEY" | gpg --import
+
+      - name: Build package
+        run: |
+          mkdir please
+          cd please
+          mkdir -p usr/local/bin
+          mkdir DEBIAN
+          mv ../please.sh usr/local/bin/please
+          echo "Package: please
+          Version: 1.0.0
+          Section: base
+          Priority: optional
+          Architecture: all
+          Maintainer: TNG Technology Consulting GmbH <info@tngtech.com>
+          Description: An AI helper script to create CLI commands" > DEBIAN/control
+          cd ..
+          dpkg-deb --build please
+          dpkg-sig --sign builder please.deb
+
+      - name: Checkout apt repository
+        uses: actions/checkout@v2
+        with:
+          repository: TNG/apt-please
+          ref: main
+          token: ${{ secrets.APT_REPO_ACCESS_TOKEN }}
+          path: apt-repo
+
+      - name: Copy package to apt repository
+        run: cp please.deb apt-repo/
+
+      - name: Generate repo
+        run: |
+          cd apt-repo
+          apt-ftparchive packages . > Packages
+          apt-ftparchive release . > Release
+          gpg --batch --yes -abs -o Release.gpg Release
+          gpg --batch --export --armor info@tngtech.com > public_key.gpg
+
+      - name: Commit and push changes
+        run: |
+          cd apt-repo
+          git config --local user.email "info@tngtech.com"
+          git config --local user.name "TNG Technology Consulting"
+          git add .
+          git commit -m "Update Please package"
+          git push
