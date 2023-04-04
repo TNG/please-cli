@@ -21,11 +21,11 @@ This will call GPT to generate a Linux command based on your input.
   Cancel
 ```
 
-Parameters:
-- -e or --explanation will explain the command for you
-- -l or --legacy will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4
-- -v or --version will show you the current version
-- -h or --help will show the help message
+### Parameters
+- `-e` or `--explanation` will explain the command for you
+- `-l` or `--legacy` will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4)
+- `-h` or `--help` will show the help message
+- `-h` or `--help` will show the help message
 
 ## Installation
 
@@ -69,8 +69,8 @@ chmod +x /usr/local/bin/please
 You need an OpenAI API key. You can get one here: https://beta.openai.com/
 
 The API key needs to be set:
-- either via an ENV variable OPENAI_API_KEY
-- via a keychain entry OPENAI_API_KEY (MacOS keychain and secret-tool on Linux are supported)
+- either via an environment variable `OPENAI_API_KEY`
+- via a keychain entry `OPENAI_API_KEY` (MacOS keychain and secret-tool on Linux are supported)
 
 To set the API key via an environment variable, run
 
