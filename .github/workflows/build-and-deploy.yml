@@ -49,6 +49,7 @@ jobs:
           cd apt-repo
           mkdir -p dists/any
           dpkg-scanpackages . /dev/null | gzip -9c > Release.gz
+          tar -xzf Release
 
       - name: Commit and push changes
         run: |
