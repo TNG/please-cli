@@ -124,26 +124,25 @@ explain_command() {
 }
 
 perform_openai_request() {
-  response=$(curl "${openai_invocation_url}/chat/completions" \
+  IFS=$'\n' read -r -d '' -a response < <(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
        -d "${payload}" \
        --silent)
-  response=(${response[@]})
   httpStatus="${response[${#response[@]}-1]}"
-  result=${response[@]::${#response[@]}-1}
 
   if [ "${httpStatus}" -ne 200 ]; then
     >&2 echo "Error: Received HTTP status ${httpStatus}"
     exit 1
   else
-    message=$(echo "${result}" | jq '.choices[0].message.content' --raw-output)
+    message=$(echo "${response[0]}" | jq '.choices[0].message.content' --raw-output)
     echo "${message}"
   fi
 }
 
 print_option() {
+  # shellcheck disable=SC2059
   printf "${lightbulb}${cyan}Command:${black}\n"
   echo "  ${command}"
   if [ "${explain}" -eq 1 ]; then
@@ -151,6 +150,7 @@ print_option() {
     echo "${explanation}"
   fi
   echo ""
+  # shellcheck disable=SC2059
   printf "${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys to navigate]${black}\n"
 }
 
