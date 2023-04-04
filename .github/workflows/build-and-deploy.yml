@@ -48,7 +48,7 @@ jobs:
         run: |
           cd apt-repo
           mkdir -p dists/any
-          dpkg-scanpackages . /dev/null | gzip -9c > /dists/any/Packages.gz
+          dpkg-scanpackages . /dev/null | gzip -9c > dists/any/Packages.gz
 
       - name: Commit and push changes
         run: |
