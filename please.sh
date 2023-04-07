@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -uo pipefail
 
 model='gpt-4'
 options=("Execute" "Copy to clipboard" "Cancel")
@@ -10,7 +10,7 @@ explain=0
 
 initialized=0
 selected_option_index=0
-
+t
 yellow='\e[33m'
 cyan='\e[36m'
 black='\e[0m'
