@@ -10,12 +10,12 @@ explain=0
 
 initialized=0
 selected_option_index=0
-t
+
 yellow='\e[33m'
 cyan='\e[36m'
 black='\e[0m'
 
-lightbulb="\xF0\x9F\x94\xA1"
+lightbulb="\xF0\x9F\x92\xA1"
 exclamation="\xE2\x9D\x97"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
@@ -143,7 +143,7 @@ perform_openai_request() {
 
 print_option() {
   # shellcheck disable=SC2059
-  printf "${lightbulb}${cyan}Command:${black}\n"
+  printf "${lightbulb} ${cyan}Command:${black}\n"
   echo "  ${command}"
   if [ "${explain}" -eq 1 ]; then
     echo ""
