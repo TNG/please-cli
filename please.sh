@@ -84,7 +84,7 @@ check_args() {
 }
 
 display_version() {
-  echo "Please vVERSION_NUMBER"
+  echo "Please v0.1.0"
 }
 
 display_help() {
