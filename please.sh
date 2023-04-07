@@ -19,6 +19,8 @@ black='\e[0m'
 lightbulb="\xF0\x9F\x94\xA1"
 exclamation="\xE2\x9D\x97"
 
+openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
+
 check_key() {
   if [ -z "${OPENAI_API_KEY+x}" ]; then
     get_key_from_keychain
@@ -127,7 +129,7 @@ explain_command() {
 }
 
 perform_openai_request() {
-  response=$(curl https://api.openai.com/v1/chat/completions \
+  response=$(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
