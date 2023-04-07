@@ -143,17 +143,12 @@ explain_command() {
 }
 
 perform_openai_request() {
-  if [ "$debug_flag" = 1 ]; then
-      silent_flag=""
-  else
-      silent_flag="--silent"
-  fi
   response=$(curl https://api.openai.com/v1/chat/completions \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
        -d "${payload}" \
-       $silent_flag)
+       --silent)
   debug "Response:\n${response}"
   response=(${response[@]})
   httpStatus="${response[${#response[@]}-1]}"
