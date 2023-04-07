@@ -18,6 +18,8 @@ black='\e[0m'
 lightbulb="\xF0\x9F\x94\xA1"
 exclamation="\xE2\x9D\x97"
 
+openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
+
 check_key() {
   if [ -z "${OPENAI_API_KEY+x}" ]; then
     get_key_from_keychain
@@ -63,6 +65,10 @@ check_args() {
         model="gpt-3.5-turbo"
         shift
         ;;
+      -v|--version)
+        display_version
+        exit 0
+        ;;
       -h|--help)
         display_help
         exit 0
@@ -75,6 +81,10 @@ check_args() {
 
   # Save remaining arguments to a string
   commandDescription="$*"
+}
+
+display_version() {
+  echo "Please vVERSION_NUMBER"
 }
 
 display_help() {
@@ -114,7 +124,7 @@ explain_command() {
 }
 
 perform_openai_request() {
-  IFS=$'\n' read -r -d '' -a response < <(curl https://api.openai.com/v1/chat/completions \
+  IFS=$'\n' read -r -d '' -a response < <(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
