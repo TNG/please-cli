@@ -64,6 +64,10 @@ check_args() {
         model="gpt-3.5-turbo"
         shift
         ;;
+      -v|--version)
+        display_version
+        exit 0
+        ;;
       -h|--help)
         display_help
         exit 0
@@ -79,6 +83,10 @@ check_args() {
   for arg in "$@"; do
     commandDescription+="$arg "
   done
+}
+
+display_version() {
+  echo "Please vVERSION_NUMBER"
 }
 
 display_help() {

@@ -1,0 +1,49 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version number'
+        required: true
+
+jobs:
+  update_version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.APT_REPO_ACCESS_TOKEN }}
+
+      - name: Set up Git
+        run: |
+          git config --local user.email "info@tngtech.com"
+          git config --local user.name "TNG Technology Consulting"
+
+
+      - name: Check if branch already exists
+        run: |
+          if git ls-remote --exit-code --heads origin "release/v${{ github.event.inputs.version }}" > /dev/null; then
+            echo "Error: Branch v${{ github.event.inputs.version }} already exists!"
+            exit 1
+          fi
+
+      - name: Create a new branch
+        run: |
+          git checkout -b "release/v${{ github.event.inputs.version }}"
+
+      - name: Update version number in please.sh
+        run: |
+          sed -i "s/VERSION_NUMBER/${{ github.event.inputs.version }}/" please.sh
+          git add please.sh
+          git commit -m "Update version number to ${{ github.event.inputs.version }}"
+
+      - name: Push the new branch
+        run: git push -u origin "release/v${{ github.event.inputs.version }}"
+
+      - name: Create a new tag
+        run: |
+          git tag -a "v${{ github.event.inputs.version }}" -m "Version ${{ github.event.inputs.version }}"
+          git push origin "v${{ github.event.inputs.version }}"
