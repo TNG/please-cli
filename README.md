@@ -28,7 +28,7 @@ please list all files smaller than 1MB in the current folder, \
 ### Parameters
 - `-e` or `--explanation` will explain the command for you
 - `-l` or `--legacy` will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4)
-- `-h` or `--help` will show the help message
+- `--debug` will display additional output
 - `-h` or `--help` will show the help message
 
 ## Installation
