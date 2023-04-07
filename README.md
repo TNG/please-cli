@@ -25,6 +25,7 @@ Parameters:
 - -e or --explanation will explain the command for you
 - -l or --legacy will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4
 - -v or --version will show you the current version
+- --debug will display additional output
 - -h or --help will show the help message
 
 ## Installation
