@@ -9,7 +9,7 @@ number_of_options=${#options[@]}
 explain=0
 
 initialized=0
-selected_option_index=0
+selected_option_index=-1
 
 yellow='\e[33m'
 cyan='\e[36m'
@@ -175,7 +175,9 @@ choose_action() {
         fi
         ;;
       "") # 'Enter' key
-        break
+        if [ "$selected_option_index" -ne -1 ]; then
+          break
+        fi
         ;;
     esac
   done
