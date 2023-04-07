@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  convert_and_publish:
+  create_pages:
     runs-on: ubuntu-latest
 
     permissions:
