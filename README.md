@@ -1,16 +1,20 @@
-# Please CLI
+# Please CLI by TNG Technology Consulting
 
-An AI helper script to create CLI commands.
+An [AI helper script to create CLI commands](https://github.com/TNG/please-cli/).
 
 ## Usage
 
 ```bash
-./please <command>
+please <command description>
 ```
 This will call GPT to generate a Linux command based on your input.
 
+### Examples
+
+![Demo](resources/demo.gif)
+
 ```bash
-./please list all files smaller than 1MB in the current folder, \
+please list all files smaller than 1MB in the current folder, \
          sort them by size and show their name and line count
 🔡 Command:
   find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1
@@ -66,7 +70,8 @@ chmod +x /usr/local/bin/please
 
 ## Prerequisites
 
-You need an OpenAI API key. You can get one here: https://beta.openai.com/
+You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once logged in, click your account in 
+the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
 
 The API key needs to be set:
 - either via an environment variable `OPENAI_API_KEY`
@@ -93,3 +98,5 @@ security add-generic-password -a <YOUR_API_KEY> -s OPENAI_API_KEY -w
 ## License
 
 Please CLI is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
+
+Copyright 2023 TNG Technology Consulting GmbH
