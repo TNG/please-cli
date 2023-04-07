@@ -7,6 +7,7 @@ options=("Execute" "Copy to clipboard" "Cancel")
 number_of_options=${#options[@]}
 
 explain=0
+debug_flag=0
 
 initialized=0
 selected_option_index=-1
@@ -20,8 +21,15 @@ exclamation="\xE2\x9D\x97"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
 
+debug() {
+    if [ "$debug_flag" = 1 ]; then
+        echo "DEBUG: $1" >&2
+    fi
+}
+
 check_key() {
   if [ -z "${OPENAI_API_KEY+x}" ]; then
+    debug "OPENAI_API_KEY environment variable not set, trying to find it in keychain"
     get_key_from_keychain
   fi
 }
@@ -41,7 +49,7 @@ get_key_from_keychain() {
       exitStatus=$?
       ;;
     *)
-      echo "OPENAI_API_KEY not set and unable to find it in keychain."
+      echo "OPENAI_API_KEY not set and no supported keychain available."
       exit 1
       ;;
   esac
@@ -51,6 +59,7 @@ get_key_from_keychain() {
     exit 1
   fi
 
+  debug "Using API key from keychain"
   OPENAI_API_KEY="${key}"
 }
 
@@ -63,6 +72,10 @@ check_args() {
         ;;
       -l|--legacy)
         model="gpt-3.5-turbo"
+        shift
+        ;;
+      --debug)
+        debug_flag=1
         shift
         ;;
       -v|--version)
@@ -94,6 +107,7 @@ display_help() {
   echo "Options:"
   echo "  -e, --explanation    Explain the command to the user"
   echo "  -l, --legacy         Use GPT 3.5 (in case you do not have GPT4 API access)"
+  echo "      --debug          Show debugging output"
   echo "  -h, --help           Display this help message"
   echo
   echo "Input:"
@@ -108,6 +122,7 @@ get_command() {
     messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
   }')
 
+  debug "Sending request to OpenAI API: ${payload}"
   command=$(perform_openai_request)
 }
 
@@ -124,16 +139,26 @@ explain_command() {
 }
 
 perform_openai_request() {
+  if [ "$debug_flag" = 1 ]; then
+      silent_flag=""
+  else
+      silent_flag="--silent"
+  fi
   IFS=$'\n' read -r -d '' -a response < <(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
        -d "${payload}" \
-       --silent)
+       $silent_flag)
+  debug "Response:\n${response}"
   httpStatus="${response[${#response[@]}-1]}"
 
   if [ "${httpStatus}" -ne 200 ]; then
-    >&2 echo "Error: Received HTTP status ${httpStatus}"
+    if [ "${httpStatus}" -eq 404 ]; then
+      echo "Error: 404. You might not have access to GPT-4. Try rerunning the command with the '-l' option set to use the legacy model." >&2
+    else
+      >&2 echo "Error: Received HTTP status ${httpStatus}"
+    fi
     exit 1
   else
     message=$(echo "${response[0]}" | jq '.choices[0].message.content' --raw-output)
