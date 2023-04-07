@@ -1,4 +1,4 @@
-name: Build and Publish Please CLI APT Package
+name: APT Repo
 
 on:
   push:
