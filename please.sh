@@ -136,24 +136,32 @@ get_key_from_keychain() {
       exitStatus=$?
       ;;
     Linux*)
-      # You need 'secret-tool' (part of libsecret-tools package)
-      # Install it on Ubuntu/Debian with: sudo apt-get install libsecret-tools
-      key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
-      exitStatus=$?
+      if ! command -v secret-tool &> /dev/null; then
+        debug "OPENAI_API_KEY not set and secret-tool not installed. Install it with 'sudo apt install libsecret-tools'."
+        exitStatus=1
+      else
+        key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+        exitStatus=$?
+      fi
       ;;
     *)
-      echo "OPENAI_API_KEY not set and no supported keychain available."
-      exit 1
+      debug "OPENAI_API_KEY not set and no supported keychain available."
+      exitStatus=1
       ;;
   esac
 
   if [ "${exitStatus}" -ne 0 ]; then
-    echo "OPENAI_API_KEY not set and unable to find it in keychain."
-    echo "Run please -a to store it in the keychain."
-    exit 1
+    echo "OPENAI_API_KEY not set and unable to find it in keychain. See the README on how to persist your key."
+    echo "You can get an API at https://beta.openai.com/"
+    echo "Please enter your OpenAI API key now to use it this time only, or rerun 'please -a' to store it in the keychain."
+    echo "Your API Key:"
+    read -r key
   fi
 
-  debug "Using API key from keychain"
+  if [ -z "${key}" ]; then
+    echo "No API key provided. Exiting."
+    exit 1
+  fi
   OPENAI_API_KEY="${key}"
 }
 
