@@ -63,7 +63,7 @@ Just copying the script (manual upgrades)
 ```bash
 wget https://raw.githubusercontent.com/TNG/please-cli/main/please.sh
 sudo cp please.sh /usr/local/bin/please
-chmod +x /usr/local/bin/please
+sudo chmod +x /usr/local/bin/please
 
 # Install jq and (if on Linux) secret-tool as well as xclip using the package manager of your choice
 ```
