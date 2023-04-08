@@ -288,6 +288,7 @@ display_menu() {
   index=0
   for option in "${options[@]}"; do
     (( index == selected_option_index )) && marker="${cyan}>${black}" || marker=" "
+    # shellcheck disable=SC2059
     printf "$marker $option "
     (( ++index ))
   done
