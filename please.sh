@@ -61,7 +61,7 @@ check_args() {
 
 function store_api_key() {
     echo "Do you want the script to store an API key in the local keychain? (y/n)"
-    read answer
+    read -r answer
 
     if [ "$answer" != "y" ]; then
         echo "This script will need an API Key to run. Exiting..."
@@ -69,7 +69,7 @@ function store_api_key() {
     fi
 
     echo "The script needs to create or copy the API key. Press Enter to continue..."
-    read -s
+    read -rs
 
     apiKeyUrl="https://platform.openai.com/account/api-keys"
     echo "Opening ${apiKeyUrl} in your browser..."
@@ -77,7 +77,7 @@ function store_api_key() {
 
     while true; do
         echo "Please enter your API key: [Press Ctrl+C to exit]"
-        read -s apiKey
+        read -rs apiKey
 
         if [ -z "$apiKey" ]; then
             echo "API key cannot be empty. Please try again."
