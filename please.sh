@@ -22,48 +22,6 @@ exclamation="\xE2\x9D\x97"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
 
-debug() {
-    if [ "$debug_flag" = 1 ]; then
-        echo "DEBUG: $1" >&2
-    fi
-}
-
-check_key() {
-  if [ -z "${OPENAI_API_KEY+x}" ]; then
-    debug "OPENAI_API_KEY environment variable not set, trying to find it in keychain"
-    get_key_from_keychain
-  fi
-}
-
-
-get_key_from_keychain() {
-  case "$(uname)" in
-    Darwin*) # macOS
-      key=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
-      exitStatus=$?
-      ;;
-    Linux*)
-      # You need 'secret-tool' (part of libsecret-tools package)
-      # Install it on Ubuntu/Debian with: sudo apt-get install libsecret-tools
-      key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
-      exitStatus=$?
-      ;;
-    *)
-      echo "OPENAI_API_KEY not set and no supported keychain available."
-      exit 1
-      ;;
-  esac
-
-  if [ "${exitStatus}" -ne 0 ]; then
-    echo "OPENAI_API_KEY not set and unable to find it in keychain."
-    echo "Run please -a to store it in the keychain."
-    exit 1
-  fi
-
-  debug "Using API key from keychain"
-  OPENAI_API_KEY="${key}"
-}
-
 check_args() {
   while [[ $# -gt 0 ]]; do
     case "${1}" in
@@ -125,7 +83,7 @@ function store_api_key() {
             echo "API key cannot be empty. Please try again."
         else
             if [[ "$OSTYPE" == "darwin"* ]]; then
-                security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}"
+                security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}" -U
                 OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
             else
                 echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"
@@ -154,6 +112,49 @@ display_help() {
   echo
   echo "Input:"
   echo "  Any remaining arguments will be used as a input to be turned into a CLI command."
+}
+
+
+debug() {
+    if [ "$debug_flag" = 1 ]; then
+        echo "DEBUG: $1" >&2
+    fi
+}
+
+check_key() {
+  if [ -z "${OPENAI_API_KEY+x}" ]; then
+    debug "OPENAI_API_KEY environment variable not set, trying to find it in keychain"
+    get_key_from_keychain
+  fi
+}
+
+
+get_key_from_keychain() {
+  case "$(uname)" in
+    Darwin*) # macOS
+      key=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
+      exitStatus=$?
+      ;;
+    Linux*)
+      # You need 'secret-tool' (part of libsecret-tools package)
+      # Install it on Ubuntu/Debian with: sudo apt-get install libsecret-tools
+      key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+      exitStatus=$?
+      ;;
+    *)
+      echo "OPENAI_API_KEY not set and no supported keychain available."
+      exit 1
+      ;;
+  esac
+
+  if [ "${exitStatus}" -ne 0 ]; then
+    echo "OPENAI_API_KEY not set and unable to find it in keychain."
+    echo "Run please -a to store it in the keychain."
+    exit 1
+  fi
+
+  debug "Using API key from keychain"
+  OPENAI_API_KEY="${key}"
 }
 
 get_command() {
