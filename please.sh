@@ -5,6 +5,7 @@ set -uo pipefail
 model='gpt-4'
 options=("Execute" "Copy to clipboard" "Cancel")
 number_of_options=${#options[@]}
+keyName="OPENAI_API_KEY"
 
 explain=0
 debug_flag=0
@@ -36,16 +37,15 @@ check_key() {
 
 
 get_key_from_keychain() {
-  local keyName="OPENAI_API_KEY"
   case "$(uname)" in
     Darwin*) # macOS
-      key=$(security find-generic-password -w -s "${keyName}")
+      key=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
       exitStatus=$?
       ;;
     Linux*)
       # You need 'secret-tool' (part of libsecret-tools package)
       # Install it on Ubuntu/Debian with: sudo apt-get install libsecret-tools
-      key=$(secret-tool lookup name "${keyName}")
+      key=$(secret-tool lookup username "${USER}" key_name "${keyName}" apiKey)
       exitStatus=$?
       ;;
     *)
@@ -56,6 +56,7 @@ get_key_from_keychain() {
 
   if [ "${exitStatus}" -ne 0 ]; then
     echo "OPENAI_API_KEY not set and unable to find it in keychain."
+    echo "Run please -a to store it in the keychain."
     exit 1
   fi
 
@@ -78,6 +79,10 @@ check_args() {
         debug_flag=1
         shift
         ;;
+      -a|--api-key)
+        store_api_key
+        exit 0
+        ;;
       -v|--version)
         display_version
         exit 0
@@ -96,6 +101,42 @@ check_args() {
   commandDescription="$*"
 }
 
+function store_api_key() {
+    echo "Do you want the script to store an API key in the local keychain? (y/n)"
+    read answer
+
+    if [ "$answer" != "y" ]; then
+        echo "This script will need an API Key to run. Exiting..."
+        exit 1
+    fi
+
+    echo "The script needs to create or copy the API key. Press Enter to continue..."
+    read -s
+
+    apiKeyUrl="https://platform.openai.com/account/api-keys"
+    echo "Opening ${apiKeyUrl} in your browser..."
+    open "${apiKeyUrl}" || xdg-open "${apiKeyUrl}"
+
+    while true; do
+        echo "Please enter your API key: [Press Ctrl+C to exit]"
+        read -s apiKey
+
+        if [ -z "$apiKey" ]; then
+            echo "API key cannot be empty. Please try again."
+        else
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}"
+                export OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
+            else
+                secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}" apiKey "${apiKey}"
+                export OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}" apiKey)
+            fi
+            echo "API key stored successfully and set as a global variable."
+            break
+        fi
+    done
+}
+
 display_version() {
   echo "Please vVERSION_NUMBER"
 }
@@ -108,6 +149,7 @@ display_help() {
   echo "  -e, --explanation    Explain the command to the user"
   echo "  -l, --legacy         Use GPT 3.5 (in case you do not have GPT4 API access)"
   echo "      --debug          Show debugging output"
+  echo "  -a, --api-key        Store your API key in the local keychain"
   echo "  -h, --help           Display this help message"
   echo
   echo "Input:"
@@ -255,8 +297,8 @@ copy_to_clipboard() {
   esac
 }
 
-check_key
 check_args "${@}"
+check_key
 
 get_command
 if [ "${explain}" -eq 1 ]; then

@@ -75,24 +75,32 @@ the top right corner and select "View API Keys". You can then create a new key u
 
 The API key needs to be set:
 - either via an environment variable `OPENAI_API_KEY`
-- via a keychain entry `OPENAI_API_KEY` (MacOS keychain and secret-tool on Linux are supported)
+- via a keychain entry `OPENAI_API_KEY` (macOS keychain and secret-tool on Linux are supported)
 
-To set the API key via an environment variable, run
+The easiest way to set the API Key is to use the `please` command  itself to do so:
+
+```bash
+please -a
+```
+
+This will set the API key in the keychain of your operating system (secret-tool on Linux, macOS keychain on MacOS).
+
+You can also set the API key via an environment variable, run
 
 ```bash
 export OPENAI_API_KEY=<YOUR_API_KEY>
 ```
 
-To store your API key using secret-tool, run
+To store your API key yourself using secret-tool, run
 
 ```bash
-secret-tool store --label="OpenAI API Key" OPENAI_API_KEY <YOUR_API_KEY>
+secret-tool store --label="OPENAI_API_KEY" username "${USER}" key_name OPENAI_API_KEY apiKey "${apiKey}"
 ```
 
-To store your API key using MacOS keychain, run
+To store your API key using macOS keychain, run
 
 ```bash
-security add-generic-password -a <YOUR_API_KEY> -s OPENAI_API_KEY -w
+security add-generic-password -a "${USER}" -s OPENAI_API_KEY -w "${apiKey}"
 ```
 
 ## License
