@@ -166,7 +166,9 @@ get_command() {
   }')
 
   debug "Sending request to OpenAI API: ${payload}"
+
   perform_openai_request
+  command="${message}"
 }
 
 explain_command() {
@@ -179,6 +181,7 @@ explain_command() {
   }')
 
   perform_openai_request
+  explanation="${message}"
 }
 
 perform_openai_request() {
@@ -188,13 +191,13 @@ perform_openai_request() {
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
        -d "${payload}" \
        --silent)
-  debug "Response:\n${result[@]}"
+  debug "Response:\n${result[*]}"
   length="${#result[@]}"
   httpStatus="${result[$((length-1))]}"
 
   length="${#result[@]}"
-  response_array=("${result[@]:0:$((length-1))}")
-  response="${response_array[@]}"
+  response_array=("${result[*]:0:$((length-1))}")
+  response="${response_array[*]}"
 
   if [ "${httpStatus}" -ne 200 ]; then
     echo "Error: Received HTTP status ${httpStatus}"
@@ -202,7 +205,6 @@ perform_openai_request() {
     exit 1
   else
     message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
-    command="${message}"
   fi
 }
 
