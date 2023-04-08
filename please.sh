@@ -45,7 +45,7 @@ get_key_from_keychain() {
     Linux*)
       # You need 'secret-tool' (part of libsecret-tools package)
       # Install it on Ubuntu/Debian with: sudo apt-get install libsecret-tools
-      key=$(secret-tool lookup username "${USER}" key_name "${keyName}" apiKey)
+      key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
       exitStatus=$?
       ;;
     *)
@@ -126,10 +126,10 @@ function store_api_key() {
         else
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}"
-                export OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
+                OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
             else
-                secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}" apiKey "${apiKey}"
-                export OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}" apiKey)
+                echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"
+                OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}")
             fi
             echo "API key stored successfully and set as a global variable."
             break
