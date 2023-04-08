@@ -16,13 +16,11 @@ This will call GPT to generate a Linux command based on your input.
 ```bash
 please list all files smaller than 1MB in the current folder, \
          sort them by size and show their name and line count
-🔡 Command:
-  find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1
+💡 Command:
+  find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1'
 
 ❗ What should I do? [use arrow keys to navigate]
-> Execute
-  Copy to clipboard
-  Cancel
+> [I] Invoke   [C] Copy to clipboard   [A] Abort
 ```
 
 ### Parameters
