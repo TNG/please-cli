@@ -3,7 +3,7 @@
 set -uo pipefail
 
 model='gpt-4'
-options=("Execute" "Copy to clipboard" "Cancel")
+options=("[I] Invoke" "[C] Copy to clipboard" "[A] Abort")
 number_of_options=${#options[@]}
 keyName="OPENAI_API_KEY"
 
@@ -236,20 +236,38 @@ choose_action() {
 
     read -rsn1 input
     # Check for arrow keys and 'Enter'
-    case "$input" in $'\x1b')
+    case "$input" in
+      $'\x1b')
         read -rsn1 tmp
         if [[ "$tmp" == "[" ]]; then
           read -rsn1 tmp
           case "$tmp" in
-            "A") # Up arrow
+            "D") # Right arrow
               selected_option_index=$(( (selected_option_index - 1 + number_of_options) % number_of_options ))
               ;;
-            "B") # Down arrow
+            "C") # Left arrow
               selected_option_index=$(( (selected_option_index + 1) % number_of_options ))
               ;;
           esac
         fi
         ;;
+      i)
+        selected_option_index=0
+        display_menu
+        break
+        ;;
+
+      c)
+        selected_option_index=1
+        display_menu
+        break
+        ;;
+      a)
+        selected_option_index=2
+        display_menu
+        break
+        ;;
+
       "") # 'Enter' key
         if [ "$selected_option_index" -ne -1 ]; then
           break
@@ -261,18 +279,19 @@ choose_action() {
 
 display_menu() {
   if [ $initialized -eq 1 ]; then
-    # Go up n lines
-    printf "\033[%dA" "$number_of_options"
+    # Go up 1 line
+    printf "\033[%dA" "1"
   else
     initialized=1
   fi
 
   index=0
   for option in "${options[@]}"; do
-    (( index == selected_option_index )) && marker=">" || marker=" "
-    echo "$marker $option"
+    (( index == selected_option_index )) && marker="${cyan}>${black}" || marker=" "
+    printf "$marker $option "
     (( ++index ))
   done
+  printf "\n"
 }
 
 act_on_action() {
