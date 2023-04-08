@@ -166,7 +166,7 @@ get_command() {
   }')
 
   debug "Sending request to OpenAI API: ${payload}"
-  command=$(perform_openai_request)
+  perform_openai_request
 }
 
 explain_command() {
@@ -178,29 +178,31 @@ explain_command() {
     messages: [{ role: "user", content: . }]
   }')
 
-  explanation=$(perform_openai_request)
+  perform_openai_request
 }
 
 perform_openai_request() {
-  IFS=$'\n' read -r -d '' -a response < <(curl "${openai_invocation_url}/chat/completions" \
+  IFS=$'\n' read -r -d '' -a result < <(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
        -d "${payload}" \
        --silent)
-  debug "Response:\n${response}"
-  httpStatus="${response[${#response[@]}-1]}"
+  debug "Response:\n${result[@]}"
+  length="${#result[@]}"
+  httpStatus="${result[$((length-1))]}"
+
+  length="${#result[@]}"
+  response_array=("${result[@]:0:$((length-1))}")
+  response="${response_array[@]}"
 
   if [ "${httpStatus}" -ne 200 ]; then
-    if [ "${httpStatus}" -eq 404 ]; then
-      echo "Error: 404. You might not have access to GPT-4. Try rerunning the command with the '-l' option set to use the legacy model." >&2
-    else
-      >&2 echo "Error: Received HTTP status ${httpStatus}"
-    fi
+    echo "Error: Received HTTP status ${httpStatus}"
+    echo "${response}" | jq .error.message --raw-output
     exit 1
   else
-    message=$(echo "${response[0]}" | jq '.choices[0].message.content' --raw-output)
-    echo "${message}"
+    message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
+    command="${message}"
   fi
 }
 
@@ -298,7 +300,13 @@ copy_to_clipboard() {
   esac
 }
 
-check_args "${@}"
+if [ $# -eq 0 ]; then
+  input=("-h")
+else
+  input=("$@")
+fi
+
+check_args "${input[@]}"
 check_key
 
 get_command
