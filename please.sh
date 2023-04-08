@@ -108,10 +108,14 @@ display_help() {
   echo "  -l, --legacy         Use GPT 3.5 (in case you do not have GPT4 API access)"
   echo "      --debug          Show debugging output"
   echo "  -a, --api-key        Store your API key in the local keychain"
-  echo "  -h, --help           Display this help message"
+  echo "  -v, --version        Display version information and exit"
+  echo "  -h, --help           Display this help message and exit"
   echo
   echo "Input:"
-  echo "  Any remaining arguments will be used as a input to be turned into a CLI command."
+  echo "  The remaining arguments are used as input to be turned into a CLI command."
+  echo
+  echo "OpenAI API Key:"
+  echo "  The API key needs to be set as OPENAI_API_KEY environment variable or keychain entry. "
 }
 
 

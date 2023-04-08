@@ -29,6 +29,8 @@ please list all files smaller than 1MB in the current folder, \
 - `-e` or `--explanation` will explain the command for you
 - `-l` or `--legacy` will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4)
 - `--debug` will display additional output
+- `-a` or `--api-key` will store your API key in the local keychain
+- `-v` or `--version` will show the current version
 - `-h` or `--help` will show the help message
 
 ## Installation
@@ -74,8 +76,8 @@ You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once
 the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
 
 The API key needs to be set:
-- either via an environment variable `OPENAI_API_KEY`
-- via a keychain entry `OPENAI_API_KEY` (macOS keychain and secret-tool on Linux are supported)
+- either via an environment variable `OPENAI_API_KEY`,
+- or via a keychain entry `OPENAI_API_KEY` (macOS keychain and secret-tool on Linux are supported)
 
 The easiest way to set the API Key is to use the `please` command  itself to do so:
 
