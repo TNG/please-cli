@@ -166,7 +166,8 @@ get_key_from_keychain() {
 }
 
 get_command() {
-  role="You translate the input given into Linux command. You may not use natural language, but only a Linux commands as answer."
+  role="You translate the input given into Linux command. You may not use natural language, but only a Linux commands as answer.
+  Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with echo 'I do not know'."
 
   payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
     model: "'"$model"'",
