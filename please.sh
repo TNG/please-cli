@@ -96,7 +96,7 @@ function store_api_key() {
 }
 
 display_version() {
-  echo "Please vVERSION_NUMBER"
+  echo "Please v0.2.2"
 }
 
 display_help() {
