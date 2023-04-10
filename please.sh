@@ -185,7 +185,7 @@ get_command() {
 }
 
 explain_command() {
-  prompt="Explain what the command ${command} does. Don't be too verbose."
+  prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Don't be too verbose."
 
   payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
     max_tokens: 100,
