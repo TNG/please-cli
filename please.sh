@@ -229,12 +229,12 @@ print_option() {
     echo ""
     echo "${explanation}"
   fi
-  echo ""
-  # shellcheck disable=SC2059
-  printf "${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys to navigate]${black}\n"
 }
 
 choose_action() {
+  # shellcheck disable=SC2059
+  printf "\n${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys to navigate]${black}\n"
+
   while true; do
     display_menu
 
@@ -350,5 +350,9 @@ if [ "${explain}" -eq 1 ]; then
 fi
 
 print_option
+
+if test "${command}" = "I do not know."; then
+  exit 1
+fi
 choose_action
 act_on_action
