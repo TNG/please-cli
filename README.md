@@ -19,7 +19,7 @@ please list all files smaller than 1MB in the current folder, \
 💡 Command:
   find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1'
 
-❗ What should I do? [use arrow keys to navigate]
+❗ What should I do? [use arrow keys or initials to navigate]
 > [I] Invoke   [C] Copy to clipboard   [A] Abort
 ```
 
