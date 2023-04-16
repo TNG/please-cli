@@ -103,6 +103,18 @@ To store your API key using macOS keychain, run
 security add-generic-password -a "${USER}" -s OPENAI_API_KEY -w "${apiKey}"
 ```
 
+## Troubleshooting
+
+If you receive the following error message:
+
+```bash
+Error: Received HTTP status 404
+The model: gpt-4 does not exist
+```
+
+The API key you are using is not authorized to use GPT-4. You may also want to use the `--legacy` flag to use GPT-3.5 instead.
+You can also apply for GPT4 API access here: https://openai.com/waitlist/gpt-4-api
+
 ## License
 
 Please CLI is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
