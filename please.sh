@@ -233,7 +233,7 @@ print_option() {
 
 choose_action() {
   # shellcheck disable=SC2059
-  printf "\n${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys to navigate]${black}\n"
+  printf "\n${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys or initials to navigate]${black}\n"
 
   while true; do
     display_menu
