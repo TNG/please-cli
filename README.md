@@ -50,6 +50,13 @@ sudo apt-get update
 sudo apt-get install please
 ```
 
+Using nix
+
+```bash
+git clone https://github.com/TNG/please-cli.git
+cd please-cli
+nix-env -i -f .
+```
 Using dpkg (manual upgrades)
 
 ```bash
