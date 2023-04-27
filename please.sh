@@ -325,7 +325,12 @@ copy_to_clipboard() {
       if [ "$XDG_SESSION_TYPE" == "wayland" ]; then
         echo -n "${command}" | wl-copy --primary
       else
-        echo -n "${command}" | xclip -selection clipboard
+        if command -v xclip &> /dev/null; then
+          echo -n "${command}" | xclip -selection clipboard
+        else
+          echo "xclip not installed. Exiting."
+          exit 1
+        fi
       fi
       ;;
     *)
