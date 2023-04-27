@@ -21,6 +21,7 @@ lightbulb="\xF0\x9F\x92\xA1"
 exclamation="\xE2\x9D\x97"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
+fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 check_args() {
   while [[ $# -gt 0 ]]; do
@@ -170,8 +171,8 @@ get_key_from_keychain() {
 }
 
 get_command() {
-  role="You translate the input given into Linux command. You may not use natural language, but only a Linux commands as answer.
-  Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with echo 'I do not know'."
+  role="You translate the given input into a Linux command. You may not use natural language, but only a Linux shell command as an answer.
+  Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
   payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
     model: "'"$model"'",
@@ -185,16 +186,20 @@ get_command() {
 }
 
 explain_command() {
-  prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Don't be too verbose."
+  if [ "${command}" = "$fail_msg" ]; then
+    explanation="There is no explanation because there was no answer."
+  else
+    prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Be precise and succinct."
 
-  payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
-    max_tokens: 100,
-    model: "'"$model"'",
-    messages: [{ role: "user", content: . }]
-  }')
+    payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
+      max_tokens: 100,
+      model: "'"$model"'",
+      messages: [{ role: "user", content: . }]
+    }')
 
-  perform_openai_request
-  explanation="${message}"
+    perform_openai_request
+    explanation="${message}"
+  fi
 }
 
 perform_openai_request() {
