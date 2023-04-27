@@ -57,6 +57,13 @@ git clone https://github.com/TNG/please-cli.git
 cd please-cli
 nix-env -i -f .
 ```
+
+Using Nix Flakes
+
+```bash
+nix run github:TNG/please-cli
+```
+
 Using dpkg (manual upgrades)
 
 ```bash
