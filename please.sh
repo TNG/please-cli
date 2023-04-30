@@ -369,12 +369,14 @@ init_questions() {
 
 ask_question() {
   echo ""
+  # shellcheck disable=SC2059
   printf "${questionMark} ${cyan}What do you want to know about this command?${black}\n"
   read -r question
   answer_question_about_command
 
-  echo $answer
+  echo "${answer}"
 
+  # shellcheck disable=SC2059
   printf "${checkMark} ${answer}\n"
 
   choose_action
