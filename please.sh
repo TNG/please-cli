@@ -3,7 +3,7 @@
 set -uo pipefail
 
 model='gpt-4'
-options=("[I] Invoke" "[C] Copy to clipboard" "[A] Abort")
+options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
 keyName="OPENAI_API_KEY"
 
@@ -19,9 +19,13 @@ black='\e[0m'
 
 lightbulb="\xF0\x9F\x92\xA1"
 exclamation="\xE2\x9D\x97"
+questionMark="\x1B[31m?\x1B[0m"
+checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
 fail_msg="echo 'I do not know. Please rephrase your question.'"
+
+declare -a qaMessages=()
 
 check_args() {
   while [[ $# -gt 0 ]]; do
@@ -237,8 +241,12 @@ print_option() {
 }
 
 choose_action() {
+  initialized=0
+  selected_option_index=-1
+
+  echo ""
   # shellcheck disable=SC2059
-  printf "\n${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys or initials to navigate]${black}\n"
+  printf "${exclamation} ${yellow}What should I do? ${cyan}[use arrow keys or initials to navigate]${black}\n"
 
   while true; do
     display_menu
@@ -271,8 +279,13 @@ choose_action() {
         display_menu
         break
         ;;
-      a)
+      q)
         selected_option_index=2
+        display_menu
+        break
+        ;;
+      a)
+        selected_option_index=3
         display_menu
         break
         ;;
@@ -312,6 +325,8 @@ act_on_action() {
   elif [ "$selected_option_index" -eq 1 ]; then
     echo "Copying to clipboard ..."
     copy_to_clipboard
+  elif [ "$selected_option_index" -eq 2 ]; then
+    ask_question
   else
     exit 0
   fi
@@ -345,6 +360,58 @@ copy_to_clipboard() {
   esac
 }
 
+init_questions() {
+  systemPrompt="You will give answers in the context of the command \"${command}\" which is a Linux bash command related to the prompt \"${commandDescription}\". Be precise and succinct, answer in full sentences, no lists, no markdown."
+  escapedPrompt=$(printf %s "${systemPrompt}" | jq -srR '@json')
+
+  qaMessages+=("{ \"role\": \"system\", \"content\": ${escapedPrompt} }")
+}
+
+ask_question() {
+  echo ""
+  printf "${questionMark} ${cyan}What do you want to know about this command?${black}\n"
+  read -r question
+  answer_question_about_command
+
+  echo $answer
+
+  printf "${checkMark} ${answer}\n"
+
+  choose_action
+  act_on_action
+}
+
+answer_question_about_command() {
+  prompt="${question}"
+  escapedPrompt=$(printf %s "${prompt}" | jq -srR '@json')
+  qaMessages+=("{ \"role\": \"user\", \"content\": ${escapedPrompt} }")
+
+  if [ -z "${qaMessages+x}" ]; then
+    messagesJson="[]"
+  else
+    messagesJson='['$(join_by , "${qaMessages[@]}")']'
+  fi
+
+  payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" '{
+    max_tokens: 200,
+    model: "'"$model"'",
+    messages: $messagesJson
+  }')
+
+  perform_openai_request
+
+  answer="${message}"
+  escapedAnswer=$(printf %s "$answer" | jq -srR '@json')
+  qaMessages+=("{ \"role\": \"assistant\", \"content\": ${escapedAnswer} }")
+}
+
+function join_by {
+  local d=${1-} f=${2-}
+  if shift 2; then
+    printf %s "$f" "${@/#/$d}"
+  fi
+}
+
 if [ $# -eq 0 ]; then
   input=("-h")
 else
@@ -361,8 +428,10 @@ fi
 
 print_option
 
-if test "${command}" = "I do not know."; then
+if test "${command}" = "${fail_msg}"; then
   exit 1
 fi
+
+init_questions
 choose_action
 act_on_action
