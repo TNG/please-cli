@@ -20,8 +20,16 @@ please list all files smaller than 1MB in the current folder, \
   find . -maxdepth 1 -type f -size -1M -exec wc -l {} + | sort -n -k1'
 
 ❗ What should I do? [use arrow keys or initials to navigate]
-> [I] Invoke   [C] Copy to clipboard   [A] Abort
+> [I] Invoke   [C] Copy to clipboard   [Q] Ask a question   [A] Abort
 ```
+
+You may then:
+- Invoke the command directly (pressing I)
+- Copy the command to the clipboard (pressing C)
+- Ask a question about the command (pressing Q)
+- Abort (pressing A)
+
+```bash
 
 ### Parameters
 - `-e` or `--explanation` will explain the command for you
