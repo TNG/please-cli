@@ -7,6 +7,7 @@ An [AI helper script to create CLI commands](https://github.com/TNG/please-cli/)
 ```bash
 please <command description>
 ```
+
 This will call GPT to generate a Linux command based on your input.
 
 ### Examples
@@ -24,6 +25,7 @@ please list all files smaller than 1MB in the current folder, \
 ```
 
 You may then:
+
 - Invoke the command directly (pressing I)
 - Copy the command to the clipboard (pressing C)
 - Ask a question about the command (pressing Q)
@@ -38,8 +40,11 @@ You may then:
 - `-a` or `--api-key` will store your API key in the local keychain
 - `-v` or `--version` will show the current version
 - `-h` or `--help` will show the help message
+```
 
 ## Installation
+
+### brew
 
 Using Homebrew (ugrades will be available via `brew upgrade please`)
 
@@ -47,6 +52,8 @@ Using Homebrew (ugrades will be available via `brew upgrade please`)
 brew tap TNG/please
 brew install please
 ```
+
+### apt
 
 Using apt (upgrades will be available via `apt upgrade please`)
 
@@ -58,7 +65,7 @@ sudo apt-get update
 sudo apt-get install please
 ```
 
-Using nix
+### nix
 
 ```bash
 git clone https://github.com/TNG/please-cli.git
@@ -72,13 +79,17 @@ Using Nix Flakes
 nix run github:TNG/please-cli
 ```
 
-Using dpkg (manual upgrades)
+### dpkg
+
+Manual upgrades
 
 ```bash
 wget https://tng.github.io/apt-please/please.deb
 sudo dpkg -i please.deb
 sudo apt-get install -f
 ```
+
+### Manually from source
 
 Just copying the script (manual upgrades)
 
@@ -92,14 +103,14 @@ sudo chmod +x /usr/local/bin/please
 
 ## Prerequisites
 
-You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once logged in, click your account in 
-the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
+You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once logged in, click your account in the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
 
 The API key needs to be set:
+
 - either via an environment variable `OPENAI_API_KEY`,
 - or via a keychain entry `OPENAI_API_KEY` (macOS keychain and secret-tool on Linux are supported)
 
-The easiest way to set the API Key is to use the `please` command  itself to do so:
+The easiest way to set the API Key is to use the `please` command itself to do so:
 
 ```bash
 please -a
