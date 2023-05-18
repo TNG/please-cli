@@ -340,20 +340,21 @@ act_on_action() {
 }
 
 execute_command() {
-    eval "${command}"
+    eval "$(resubstitute_escaped_words "${command}")"
 }
 
 copy_to_clipboard() {
+  resubstitutedCommand="$(resubstitute_escaped_words "${command}")"
   case "$(uname)" in
     Darwin*) # macOS
-      echo -n "${command}" | pbcopy
+      echo -n "${resubstitutedCommand}" | pbcopy
       ;;
     Linux*)
       if [ "$XDG_SESSION_TYPE" == "wayland" ]; then
-        echo -n "${command}" | wl-copy --primary
+        echo -n "${resubstitutedCommand}" | wl-copy --primary
       else
         if command -v xclip &> /dev/null; then
-          echo -n "${command}" | xclip -selection clipboard
+          echo -n "${resubstitutedCommand}" | xclip -selection clipboard
         else
           echo "xclip not installed. Exiting."
           exit 1
