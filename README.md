@@ -136,6 +136,23 @@ To store your API key using macOS keychain, run
 security add-generic-password -a "${USER}" -s OPENAI_API_KEY -w "${apiKey}"
 ```
 
+
+## Sensitive Word Protection
+
+In case would like to exclude parts of your request from being sent to OpenAI, you may protect them by surrounding them 
+in double curly braces `{{...}}`. In the payload sent to OpenAI, those words will then be replaced by placeholders.
+
+Example:
+The request
+```bash
+please list me all files that contain the word {{my name}}
+```
+will result in a payload `list me all files that contain the word %%%PLACEHOLDER-0%%%` that is sent to OpenAI. The placeholder
+is then re-substituted locally on your machine.
+
+_Careful:_ In order to protect words, you must exactly follow the style as proposed above (for example, no whitespaces between the curly braces).
+You may experiment with the `--debug` option in order to verify the desired behavior before you input actual sensitive data!
+
 ## Troubleshooting
 
 If you receive the following error message:
