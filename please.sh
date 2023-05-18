@@ -26,6 +26,7 @@ openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 declare -a qaMessages=()
+declare -a escaped_words=()
 
 check_args() {
   while [[ $# -gt 0 ]]; do
@@ -119,6 +120,10 @@ display_help() {
   echo "Input:"
   echo "  The remaining arguments are used as input to be turned into a CLI command."
   echo
+  ehco "Protecting sensitive words:"
+  echo "  You may protect sensitive words (IDs, Names, etc.) by surrounding them in double curly braces, e.g. '{{ID1234}}'."
+  echo "  Those will then be replaced by placeholders and not be sent to OpenAi."
+  echo
   echo "OpenAI API Key:"
   echo "  The API key needs to be set as OPENAI_API_KEY environment variable or keychain entry. "
 }
@@ -183,8 +188,6 @@ get_command() {
     messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
   }')
 
-  debug "Sending request to OpenAI API: ${payload}"
-
   perform_openai_request
   command="${message}"
 }
@@ -207,11 +210,15 @@ explain_command() {
 }
 
 perform_openai_request() {
+
+  replace_escaped_words_with_placeholders "${payload}"
+  debug "Sending request to OpenAI API: ${escapedPayload}"
+
   IFS=$'\n' read -r -d '' -a result < <(curl "${openai_invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Authorization: Bearer ${OPENAI_API_KEY}" \
-       -d "${payload}" \
+       -d "${escapedPayload}" \
        --silent)
   debug "Response:\n${result[*]}"
   length="${#result[@]}"
@@ -233,10 +240,10 @@ perform_openai_request() {
 print_option() {
   # shellcheck disable=SC2059
   printf "${lightbulb} ${cyan}Command:${black}\n"
-  echo "  ${command}"
+  echo "  $(resubstitute_escaped_words "${command}")"
   if [ "${explain}" -eq 1 ]; then
     echo ""
-    echo "${explanation}"
+    echo "$(resubstitute_escaped_words "${explanation}")"
   fi
 }
 
@@ -374,10 +381,10 @@ ask_question() {
   read -r question
   answer_question_about_command
 
-  echo "${answer}"
+  echo "$(resubstitute_escaped_words "${answer}")"
 
   # shellcheck disable=SC2059
-  printf "${checkMark} ${answer}\n"
+  printf "${checkMark} $(resubstitute_escaped_words "${answer}")\n"
 
   choose_action
   act_on_action
@@ -412,6 +419,44 @@ function join_by {
   if shift 2; then
     printf %s "$f" "${@/#/$d}"
   fi
+}
+
+
+replace_escaped_words_with_placeholders() {
+  regex="{{(.+)}}"
+  escapedPayload="$1"
+
+  # replace already known protected words to re-use same placeholders for same words (e.g. in explanation)
+  for i in "${!escaped_words[@]}"; do
+      # replace "PLACEHOLDER-x" with the element at index x
+      escapedPayload="${escapedPayload//{{${escaped_words[i]}\}\}/%%%PLACEHOLDER-$i%%%}"
+  done
+
+  index=${#escaped_words[@]}
+  # Find matches and replace with placeholders
+  while true
+  do
+      candidate="$(sed 's/\(}}\).*/\1/; s/\(\({{\(.*\)\)*.\)*/\1/g' <<< $escapedPayload)"
+
+      if [[ "$candidate" =~ $regex ]]; then
+        # Store the match in the array
+        escaped_words+=("${BASH_REMATCH[1]}")
+        # Replace the first occurrence with the placeholder
+        escapedPayload="${escapedPayload//${BASH_REMATCH[0]}/%%%PLACEHOLDER-$index%%%}"
+
+        index=$((index + 1))
+      else
+        break
+      fi
+  done
+}
+
+resubstitute_escaped_words() {
+  result=$1
+  for i in "${!escaped_words[@]}"; do
+      result="${result//%%%PLACEHOLDER-$i%%%/${escaped_words[i]}}"
+  done
+  echo "$result"
 }
 
 if [ $# -eq 0 ]; then
