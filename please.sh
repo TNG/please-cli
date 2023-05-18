@@ -333,7 +333,42 @@ act_on_action() {
 }
 
 execute_command() {
+    save_command_in_history
     eval "${command}"
+}
+
+save_command_in_history() {
+  # Get the name of the shell
+  shell=$(basename "$SHELL")
+
+  # Determine the history file based on the shell
+  case "$shell" in
+      bash)
+          histfile="${HISTFILE:-$HOME/.bash_history}"
+          ;;
+      zsh)
+          histfile="${HISTFILE:-$HOME/.zsh_history}"
+          ;;
+      fish)
+          # fish doesn't use HISTFILE, but uses a fixed location
+          histfile="$HOME/.local/share/fish/fish_history"
+          ;;
+      ksh)
+          histfile="${HISTFILE:-$HOME/.sh_history}"
+          ;;
+      tcsh)
+          histfile="${HISTFILE:-$HOME/.history}"
+          ;;
+      *)
+          ;;
+  esac
+
+  if [ -z "$histfile" ]; then
+    debug "Could not determine history file for shell ${shell}"
+  else
+    debug "Saving command ${command} to file ${histfile}"
+    echo "${command}" >> "${histfile}"
+  fi
 }
 
 copy_to_clipboard() {
