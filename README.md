@@ -89,6 +89,12 @@ sudo dpkg -i please.deb
 sudo apt-get install -f
 ```
 
+### arch
+```bash
+git clone https://github.com/TNG/please-cli.git
+makepkg --clean --install
+```
+
 ### Manually from source
 
 Just copying the script (manual upgrades)

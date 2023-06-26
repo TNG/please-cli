@@ -44,14 +44,14 @@ jobs:
             version \"${VERSION}\"
             url \"${URL}\"
             sha256 \"${SHA_SUM}\"
-          
+
             depends_on \"jq\"
             depends_on \"curl\"
-          
+
             def install
               bin.install \"please.sh\" => \"please\"
             end
-          
+
             test do
               system \"#{bin}/please\", \"--help\"
             end
@@ -135,3 +135,23 @@ jobs:
           git add .
           git commit -m "Update Please package to ${TAG}"
           git push
+
+  create_arch_package:
+    runs-on: archarm-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup base-devel
+        run: sudo pacman -Syu base-devel
+
+      - name: Build package
+        run: makepkg
+
+      - name: Store package artificat
+        uses: actions/upload-artifact@v3
+        with:
+          name: please-cli arch package ${{ github.ref }}
+          path: please-cli-*.pkg.tar
+
