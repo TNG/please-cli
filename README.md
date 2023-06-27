@@ -91,8 +91,8 @@ sudo apt-get install -f
 
 ### arch
 ```bash
-git clone https://github.com/TNG/please-cli.git
-makepkg --clean --install
+wget https://raw.githubusercontent.com/TNG/please-cli/main/PKGBUILD
+makepkg --clean --install --syncdeps
 ```
 
 ### Manually from source

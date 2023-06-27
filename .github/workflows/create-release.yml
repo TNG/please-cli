@@ -147,7 +147,10 @@ jobs:
         run: sudo pacman -Syu base-devel
 
       - name: Build package
-        run: makepkg
+        run: |
+          export TAG="${{ github.ref }}"
+          export VERSION=$(echo "${TAG}" | sed 's/^refs\/tags\/v//')
+          makepkg
 
       - name: Store package artificat
         uses: actions/upload-artifact@v3
