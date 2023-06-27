@@ -89,6 +89,12 @@ sudo dpkg -i please.deb
 sudo apt-get install -f
 ```
 
+### arch
+```bash
+wget https://raw.githubusercontent.com/TNG/please-cli/main/PKGBUILD
+makepkg --clean --install --syncdeps
+```
+
 ### Manually from source
 
 Just copying the script (manual upgrades)
