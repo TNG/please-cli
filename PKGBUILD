@@ -1,3 +1,4 @@
+# Maintainer: Your Name <alberto.diazdorado@tngtech.com>
 # Maintainer: Nicholas Schwab <nicholas.schwab@tngtech.com>
 pkgname=please-cli
 pkgver=WillBeSetAutomatically
