@@ -44,14 +44,14 @@ jobs:
             version \"${VERSION}\"
             url \"${URL}\"
             sha256 \"${SHA_SUM}\"
-          
+
             depends_on \"jq\"
             depends_on \"curl\"
-          
+
             def install
               bin.install \"please.sh\" => \"please\"
             end
-          
+
             test do
               system \"#{bin}/please\", \"--help\"
             end
@@ -135,3 +135,40 @@ jobs:
           git add .
           git commit -m "Update Please package to ${TAG}"
           git push
+
+  create_arch_package:
+    runs-on: archarm-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Setup ssh for aur
+        run: |
+          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > ~/.ssh/authorized_keys
+
+      - name: Update aur PKGBUILD
+        run: |
+          export TAG="${{ github.ref }}"
+          export VERSION=$(echo "${TAG}" | sed 's/^refs\/tags\/v//')
+
+          git clone ssh://aur@aur.archlinux.org/please-cli.git
+          cd please-cli
+
+          cp ../PKGBUILD PKGBUILD
+          makepkg
+          makepkg --printsrcinfo > .SRCINFO
+
+          git config --local user.email "info@tngtech.com"
+          git config --local user.name "TNG Technology Consulting"
+          git add .
+          git commit -m "Update version to $VERSION"
+          git push
+
+      - name: Upload built package
+        uses: actions/upload-artifact@v3
+        with:
+          name: please-cli arch package ${{ github.ref }}
+          path: please-cli/please-cli-*.pkg.tar
+

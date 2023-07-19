@@ -89,6 +89,15 @@ sudo dpkg -i please.deb
 sudo apt-get install -f
 ```
 
+### arch
+The latest release is in the AUR under the name [please-cli](https://aur.archlinux.org/packages/please-cli). It can be installed [manually](https://wiki.archlinux.org/title/Arch_User_Repository) or with [a helper](https://wiki.archlinux.org/title/AUR_helpers).
+
+Alternatively, you can build the package from source via
+```bash
+wget https://raw.githubusercontent.com/TNG/please-cli/main/PKGBUILD
+makepkg --clean --install --syncdeps
+```
+
 ### Manually from source
 
 Just copying the script (manual upgrades)
