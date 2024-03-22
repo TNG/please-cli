@@ -46,6 +46,15 @@ check_args() {
         store_api_key
         exit 0
         ;;
+      -m|--model)
+        if [ -n "$2" ] && [ "${2:0:1}" != "-" ] && [ "${2:0:3}" == "gpt" ]; then
+          model="$2"
+          shift 2
+        else
+          echo "Error: --model requires a gpt model"
+          exit 1
+        fi
+        ;;
       -v|--version)
         display_version
         exit 0
@@ -113,6 +122,7 @@ display_help() {
   echo "  -l, --legacy         Use GPT 3.5 (in case you do not have GPT4 API access)"
   echo "      --debug          Show debugging output"
   echo "  -a, --api-key        Store your API key in the local keychain"
+  echo "  -m, --model          Specify the exact LLM model for the script"
   echo "  -v, --version        Display version information and exit"
   echo "  -h, --help           Display this help message and exit"
   echo

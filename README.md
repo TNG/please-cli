@@ -38,6 +38,7 @@ You may then:
 - `-l` or `--legacy` will use the GPT3.5 AI model instead of GPT4 (in case you don't have API access to GPT4)
 - `--debug` will display additional output
 - `-a` or `--api-key` will store your API key in the local keychain
+- `-m` or `--model` will query ChatGPT with the specified model
 - `-v` or `--version` will show the current version
 - `-h` or `--help` will show the help message
 ```
