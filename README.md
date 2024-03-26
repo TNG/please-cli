@@ -47,9 +47,9 @@ You may then:
 
 ### brew
 
-Using Homebrew (ugrades will be available via `brew upgrade please`)
+Using Homebrew (upgrades will be available via `brew upgrade please`)
 
-```
+```bash
 brew tap TNG/please
 brew install please
 ```
@@ -91,9 +91,11 @@ sudo apt-get install -f
 ```
 
 ### arch
+
 The latest release is in the AUR under the name [please-cli](https://aur.archlinux.org/packages/please-cli). It can be installed [manually](https://wiki.archlinux.org/title/Arch_User_Repository) or with [a helper](https://wiki.archlinux.org/title/AUR_helpers).
 
 Alternatively, you can build the package from source via
+
 ```bash
 wget https://raw.githubusercontent.com/TNG/please-cli/main/PKGBUILD
 makepkg --clean --install --syncdeps
@@ -113,7 +115,7 @@ sudo chmod +x /usr/local/bin/please
 
 ## Prerequisites
 
-You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once logged in, click your account in the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
+You need an OpenAI API key. You can get one here: <https://beta.openai.com/>. Once logged in, click your account in the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
 
 The API key needs to be set:
 
@@ -156,10 +158,10 @@ The model: gpt-4 does not exist
 ```
 
 The API key you are using is not authorized to use GPT-4. You may also want to use the `--legacy` flag to use GPT-3.5 instead.
-You can also apply for GPT4 API access here: https://openai.com/waitlist/gpt-4-api
+You can also apply for GPT4 API access here: <https://openai.com/waitlist/gpt-4-api>
 
 ## License
 
-Please CLI is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
+Please CLI is published under the Apache License 2.0, see <http://www.apache.org/licenses/LICENSE-2.0> for details.
 
 Copyright 2023 TNG Technology Consulting GmbH
