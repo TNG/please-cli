@@ -2,6 +2,9 @@
 
 set -uo pipefail
 
+CONFIG_FILE="${HOME}/.pleaserc"
+. $CONFIG_FILE 2>/dev/null
+
 model='gpt-4'
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
@@ -23,6 +26,7 @@ questionMark="\x1B[31m?\x1B[0m"
 checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
+openai_use_azure_endpoint=${OPENAI_URL:+1} # if OPENAI_URL is set, we assume it is an Azure endpoint
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 declare -a qaMessages=()
@@ -44,6 +48,10 @@ check_args() {
         ;;
       -a|--api-key)
         store_api_key
+        exit 0
+        ;;
+      -H|--api-host)
+        store_api_host
         exit 0
         ;;
       -m|--model)
@@ -73,6 +81,30 @@ check_args() {
   commandDescription="$*"
 }
 
+# Write a configuration to disk
+#
+# Parameters:
+#   config - The name of the configuration
+#   value - The value to be set for the configuration
+#
+# Returns:
+#   0 - If the configuration value was successfully written
+#   1 - config_key or config_value is empty
+function write_config() {
+    config_key=$1
+    [ -z $config_key ] && return 1
+    config_value=$2
+    [ -z $config_value ] && return 1
+
+    [ -f $CONFIG_FILE ] || touch $CONFIG_FILE
+
+    sed -i.bak -e "s/^${config_key}=.*\$/${config_key}=${config_value//\//\\/}/w /dev/stdout" $CONFIG_FILE | grep -q .
+    if [ $? -ne 0 ]; then
+        echo "${config_key}=${config_value}" >>$CONFIG_FILE
+    fi
+    rm "$CONFIG_FILE.bak" # .bak file is created for sed to be compatible with both GNU and BSD sed
+}
+
 function store_api_key() {
     echo "Do you want the script to store an API key in the local keychain? (y/n)"
     read -r answer
@@ -82,12 +114,14 @@ function store_api_key() {
         exit 1
     fi
 
-    echo "The script needs to create or copy the API key. Press Enter to continue..."
-    read -rs
+    if [ "${openai_use_azure_endpoint}" -eq 0 ]; then
+        echo "The script needs to create or copy the API key. Press Enter to continue..."
+        read -rs
 
-    apiKeyUrl="https://platform.openai.com/account/api-keys"
-    echo "Opening ${apiKeyUrl} in your browser..."
-    open "${apiKeyUrl}" || xdg-open "${apiKeyUrl}"
+        apiKeyUrl="https://platform.openai.com/account/api-keys"
+        echo "Opening ${apiKeyUrl} in your browser..."
+        open "${apiKeyUrl}" || xdg-open "${apiKeyUrl}"
+    fi
 
     while true; do
         echo "Please enter your API key: [Press Ctrl+C to exit]"
@@ -109,6 +143,35 @@ function store_api_key() {
     done
 }
 
+function store_api_host() {
+  echo "Setting up Azure OpenAPI host."
+
+  while true; do
+    echo "Please enter your Endpoint: [Press Ctrl+C to exit]"
+    read -r endpoint
+
+    if [ -z "$endpoint" ]; then
+      echo "Endpoint cannot be empty. Please try again."
+    else
+      endpoint=${endpoint%/}
+      break
+    fi
+  done
+
+  while true; do
+    echo "Please enter your Deployment Name: [Press Ctrl+C to exit]"
+    read -r deployment_id
+
+    if [ -z "$deployment_id" ]; then
+      echo "Deployment Name cannot be empty. Please try again."
+    else
+      break
+    fi
+  done
+
+  write_config "OPENAI_URL" "${endpoint}/openai/deployments/${deployment_id}"
+}
+
 display_version() {
   echo "Please vVERSION_NUMBER"
 }
@@ -122,6 +185,7 @@ display_help() {
   echo "  -l, --legacy         Use GPT 3.5 (in case you do not have GPT4 API access)"
   echo "      --debug          Show debugging output"
   echo "  -a, --api-key        Store your API key in the local keychain"
+  echo "  -H, --api-host       Store your Azure OpenAPI host"
   echo "  -m, --model          Specify the exact LLM model for the script"
   echo "  -v, --version        Display version information and exit"
   echo "  -h, --help           Display this help message and exit"
@@ -217,12 +281,20 @@ explain_command() {
 }
 
 perform_openai_request() {
-  IFS=$'\n' read -r -d '' -a result < <(curl "${openai_invocation_url}/chat/completions" \
-       -s -w "\n%{http_code}" \
-       -H "Content-Type: application/json" \
-       -H "Authorization: Bearer ${OPENAI_API_KEY}" \
-       -d "${payload}" \
-       --silent)
+  if [ "${openai_use_azure_endpoint:-0}" -eq 1 ]; then
+    endpoint="${openai_invocation_url}/chat/completions?api-version=2023-05-15"
+    authorization="api-key: ${OPENAI_API_KEY}"
+  else
+    endpoint="${openai_invocation_url}/chat/completions"
+    authorization="Authorization: Bearer ${OPENAI_API_KEY}"
+  fi
+
+  IFS=$'\n' read -r -d '' -a result < <(curl "${endpoint}" \
+      -s -w "\n%{http_code}" \
+      -H "Content-Type: application/json" \
+      -H "${authorization}" \
+      -d "${payload}" \
+      --silent)
   debug "Response:\n${result[*]}"
   length="${#result[@]}"
   httpStatus="${result[$((length-1))]}"
