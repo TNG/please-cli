@@ -2,6 +2,9 @@
 
 set -uo pipefail
 
+CONFIG_FILE="${HOME}/.pleaserc"
+. $CONFIG_FILE 2>/dev/null
+
 model='gpt-4'
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
@@ -78,6 +81,30 @@ check_args() {
   commandDescription="$*"
 }
 
+# Write a configuration to disk
+#
+# Parameters:
+#   config - The name of the configuration
+#   value - The value to be set for the configuration
+#
+# Returns:
+#   0 - If the configuration value was successfully written
+#   1 - config_key or config_value is empty
+function write_config() {
+    config_key=$1
+    [ -z $config_key ] && return 1
+    config_value=$2
+    [ -z $config_value ] && return 1
+
+    [ -f $CONFIG_FILE ] || touch $CONFIG_FILE
+
+    sed -i.bak -e "s/^${config_key}=.*\$/${config_key}=${config_value//\//\\/}/w /dev/stdout" $CONFIG_FILE | grep -q .
+    if [ $? -ne 0 ]; then
+        echo "${config_key}=${config_value}" >>$CONFIG_FILE
+    fi
+    rm "$CONFIG_FILE.bak" # .bak file is created for sed to be compatible with both GNU and BSD sed
+}
+
 function store_api_key() {
     echo "Do you want the script to store an API key in the local keychain? (y/n)"
     read -r answer
@@ -121,7 +148,7 @@ function store_api_host() {
 
   while true; do
     echo "Please enter your Endpoint: [Press Ctrl+C to exit]"
-    read -rs endpoint
+    read -r endpoint
 
     if [ -z "$endpoint" ]; then
       echo "Endpoint cannot be empty. Please try again."
@@ -133,7 +160,7 @@ function store_api_host() {
 
   while true; do
     echo "Please enter your Deployment Name: [Press Ctrl+C to exit]"
-    read -rs deployment_id
+    read -r deployment_id
 
     if [ -z "$deployment_id" ]; then
       echo "Deployment Name cannot be empty. Please try again."
@@ -142,7 +169,7 @@ function store_api_host() {
     fi
   done
 
-  export OPENAI_URL="${endpoint}/openai/deployments/${deployment-id}"
+  write_config "OPENAI_URL" "${endpoint}/openai/deployments/${deployment_id}"
 }
 
 display_version() {
@@ -263,11 +290,11 @@ perform_openai_request() {
   fi
 
   IFS=$'\n' read -r -d '' -a result < <(curl "${endpoint}" \
-       -s -w "\n%{http_code}" \
-       -H "Content-Type: application/json" \
-       -H "${authorization}" \
-       -d "${payload}" \
-       --silent)
+      -s -w "\n%{http_code}" \
+      -H "Content-Type: application/json" \
+      -H "${authorization}" \
+      -d "${payload}" \
+      --silent)
   debug "Response:\n${result[*]}"
   length="${#result[@]}"
   httpStatus="${result[$((length-1))]}"
