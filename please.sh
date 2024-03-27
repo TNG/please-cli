@@ -26,7 +26,7 @@ questionMark="\x1B[31m?\x1B[0m"
 checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 
 openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
-openai_use_azure_endpoint=$(echo "$OPENAI_URL" | grep azure.com >/dev/null && echo 1 || echo 0)
+openai_use_azure_endpoint=${OPENAI_URL:+1} # if OPENAI_URL is set, we assume it is an Azure endpoint
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 declare -a qaMessages=()
@@ -281,12 +281,12 @@ explain_command() {
 }
 
 perform_openai_request() {
-  if [ "${openai_use_azure_endpoint}" -eq 0 ]; then
-    endpoint="${openai_invocation_url}/chat/completions"
-    authorization="Authorization: Bearer ${OPENAI_API_KEY}"
-  else
+  if [ "${openai_use_azure_endpoint:-0}" -eq 1 ]; then
     endpoint="${openai_invocation_url}/chat/completions?api-version=2023-05-15"
     authorization="api-key: ${OPENAI_API_KEY}"
+  else
+    endpoint="${openai_invocation_url}/chat/completions"
+    authorization="Authorization: Bearer ${OPENAI_API_KEY}"
   fi
 
   IFS=$'\n' read -r -d '' -a result < <(curl "${endpoint}" \
