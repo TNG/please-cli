@@ -278,22 +278,30 @@ choose_action() {
           esac
         fi
         ;;
+      I)
+        ;&
       i)
         selected_option_index=0
         display_menu
         break
         ;;
 
+      C)
+        ;&
       c)
         selected_option_index=1
         display_menu
         break
         ;;
+      Q)
+        ;&
       q)
         selected_option_index=2
         display_menu
         break
         ;;
+      A)
+        ;&
       a)
         selected_option_index=3
         display_menu
