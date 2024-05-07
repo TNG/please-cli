@@ -2,7 +2,7 @@
 
 set -uo pipefail
 
-model='gpt-4'
+model=${PLEASE_OPENAI_CHAT_MODEL:-'gpt-4-turbo'}
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
 keyName="OPENAI_API_KEY"
@@ -22,7 +22,10 @@ exclamation="\xE2\x9D\x97"
 questionMark="\x1B[31m?\x1B[0m"
 checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 
-openai_invocation_url=${OPENAI_URL:-"https://api.openai.com/v1"}
+openai_api_base=${PLEASE_OPENAI_API_BASE:-${OPENAI_API_BASE:-${OPENAI_URL:-"https://api.openai.com"}}}
+openai_api_version=${PLEASE_OPENAI_API_VERSION:-${OPENAI_API_VERSION:-"v1"}}
+openai_invocation_url=${openai_api_base}/${openai_api_version}
+
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 declare -a qaMessages=()
@@ -98,10 +101,10 @@ function store_api_key() {
         else
             if [[ "$OSTYPE" == "darwin"* ]]; then
                 security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}" -U
-                OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
+                PLEASE_OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
             else
                 echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"
-                OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+                PLEASE_OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}")
             fi
             echo "API key stored successfully and set as a global variable."
             break
@@ -130,7 +133,7 @@ display_help() {
   echo "  The remaining arguments are used as input to be turned into a CLI command."
   echo
   echo "OpenAI API Key:"
-  echo "  The API key needs to be set as OPENAI_API_KEY environment variable or keychain entry. "
+  echo "  The API key needs to be set as PLEASE_OPENAI_API_KEY or OPENAI_API_KEY environment variable or keychain entry. "
 }
 
 
@@ -141,8 +144,8 @@ debug() {
 }
 
 check_key() {
-  if [ -z "${OPENAI_API_KEY+x}" ]; then
-    debug "OPENAI_API_KEY environment variable not set, trying to find it in keychain"
+  if [ -z "${PLEASE_OPENAI_API_KEY:-${OPENAI_API_KEY:-}}" ]; then
+    debug "PLEASE_OPENAI_API_KEY or OPENAI_API_KEY environment variable not set, trying to find it in keychain"
     get_key_from_keychain
   fi
 }
@@ -156,7 +159,7 @@ get_key_from_keychain() {
       ;;
     Linux*)
       if ! command -v secret-tool &> /dev/null; then
-        debug "OPENAI_API_KEY not set and secret-tool not installed. Install it with 'sudo apt install libsecret-tools'."
+        debug "PLEASE_OPENAI_API_KEY or OPENAI_API_KEY not set and secret-tool not installed. Install it with 'sudo apt install libsecret-tools'."
         exitStatus=1
       else
         key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
@@ -164,13 +167,13 @@ get_key_from_keychain() {
       fi
       ;;
     *)
-      debug "OPENAI_API_KEY not set and no supported keychain available."
+      debug "PLEASE_OPENAI_API_KEY or OPENAI_API_KEY not set and no supported keychain available."
       exitStatus=1
       ;;
   esac
 
   if [ "${exitStatus}" -ne 0 ]; then
-    echo "OPENAI_API_KEY not set and unable to find it in keychain. See the README on how to persist your key."
+    echo "PLEASE_OPENAI_API_KEY or OPENAI_API_KEY not set and unable to find it in keychain. See the README on how to persist your key."
     echo "You can get an API at https://beta.openai.com/"
     echo "Please enter your OpenAI API key now to use it this time only, or rerun 'please -a' to store it in the keychain."
     echo "Your API Key:"
@@ -181,7 +184,7 @@ get_key_from_keychain() {
     echo "No API key provided. Exiting."
     exit 1
   fi
-  OPENAI_API_KEY="${key}"
+  PLEASE_OPENAI_API_KEY="${key}"
 }
 
 get_command() {
@@ -221,7 +224,7 @@ perform_openai_request() {
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Accept-Encoding: identity" \
-       -H "Authorization: Bearer ${OPENAI_API_KEY}" \
+       -H "Authorization: Bearer ${PLEASE_OPENAI_API_KEY:-$OPENAI_API_KEY}" \
        -d "${payload}" \
        --silent)
   debug "Response:\n${result[*]}"
@@ -433,12 +436,7 @@ answer_question_about_command() {
   prompt="${question}"
   escapedPrompt=$(printf %s "${prompt}" | jq -srR '@json')
   qaMessages+=("{ \"role\": \"user\", \"content\": ${escapedPrompt} }")
-
-  if [ -z "${qaMessages+x}" ]; then
-    messagesJson="[]"
-  else
-    messagesJson='['$(join_by , "${qaMessages[@]}")']'
-  fi
+  messagesJson='['$(join_by , "${qaMessages[@]}")']'
 
   payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" '{
     max_tokens: 200,
@@ -460,26 +458,33 @@ function join_by {
   fi
 }
 
-if [ $# -eq 0 ]; then
-  input=("-h")
-else
-  input=("$@")
+function main() {
+  if [ $# -eq 0 ]; then
+    input=("-h")
+  else
+    input=("$@")
+  fi
+
+  check_args "${input[@]}"
+  check_key
+
+  get_command
+  if [ "${explain}" -eq 1 ]; then
+    explain_command
+  fi
+
+  print_option
+
+  if test "${command}" = "${fail_msg}"; then
+    exit 1
+  fi
+
+  init_questions
+  choose_action
+  act_on_action
+}
+
+# Only call main if the script is not being sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
 fi
-
-check_args "${input[@]}"
-check_key
-
-get_command
-if [ "${explain}" -eq 1 ]; then
-  explain_command
-fi
-
-print_option
-
-if test "${command}" = "${fail_msg}"; then
-  exit 1
-fi
-
-init_questions
-choose_action
-act_on_action
