@@ -42,3 +42,12 @@ Resolves #7
 ```
 
 Furthermore, commits must be signed off according to the [DCO](DCO).
+
+### Testing
+
+Install [bats](https://bats-core.readthedocs.io/en/stable/installation.html).
+
+Run tests:
+```
+bats --formatter pretty test
+```
