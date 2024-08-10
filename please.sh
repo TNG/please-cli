@@ -2,6 +2,8 @@
 
 set -uo pipefail
 
+api_service=${PLEASE_API_SERVICE:-'openai'}
+
 model=${PLEASE_OPENAI_CHAT_MODEL:-'gpt-4-turbo'}
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
@@ -23,8 +25,10 @@ questionMark="\x1B[31m?\x1B[0m"
 checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 
 openai_api_base=${PLEASE_OPENAI_API_BASE:-${OPENAI_API_BASE:-${OPENAI_URL:-"https://api.openai.com"}}}
+ollama_api_base="http://localhost:11434"
 openai_api_version=${PLEASE_OPENAI_API_VERSION:-${OPENAI_API_VERSION:-"v1"}}
 openai_invocation_url=${openai_api_base}/${openai_api_version}
+ollama_invocation_url=${ollama_api_base}/${openai_api_version}
 
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
@@ -50,13 +54,21 @@ check_args() {
         exit 0
         ;;
       -m|--model)
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ] && [ "${2:0:3}" == "gpt" ]; then
+        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+          if [ "${api_service}" = "openai" ] && [ "${2:0:3}" != "gpt" ]; then
+            echo "Error: --model requires a gpt model"
+            exit 1
+          fi
           model="$2"
           shift 2
         else
-          echo "Error: --model requires a gpt model"
+          echo "Error: --model requires a valid model"
           exit 1
         fi
+        ;;
+      -o|--ollama)
+        api_service="ollama"
+        shift
         ;;
       -v|--version)
         display_version
@@ -220,7 +232,9 @@ explain_command() {
 }
 
 perform_openai_request() {
-  IFS=$'\n' read -r -d '' -a result < <(curl "${openai_invocation_url}/chat/completions" \
+  invocation_url=${openai_invocation_url}
+  [ "${api_service}" != "openai" ] && invocation_url=${ollama_invocation_url}
+  IFS=$'\n' read -r -d '' -a result < <(curl "${invocation_url}/chat/completions" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Accept-Encoding: identity" \
@@ -466,7 +480,11 @@ function main() {
   fi
 
   check_args "${input[@]}"
-  check_key
+  if [ "${api_service}" = "openai" ]; then
+    check_key
+  else
+    OPENAI_API_KEY="ollama"
+  fi
 
   get_command
   if [ "${explain}" -eq 1 ]; then
