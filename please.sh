@@ -238,7 +238,7 @@ perform_openai_request() {
 
   if [ "${httpStatus}" -ne 200 ]; then
     echo "Error: Received HTTP status ${httpStatus} while trying to access ${completions_url}"
-    echo "${response}" | jq .error.message --raw-output
+    echo "${response}"
     exit 1
   else
     message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
