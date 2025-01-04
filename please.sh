@@ -220,7 +220,8 @@ explain_command() {
 }
 
 perform_openai_request() {
-  IFS=$'\n' read -r -d '' -a result < <(curl "${openai_invocation_url}/chat/completions" \
+  completions_url="${openai_invocation_url}/chat/completions"
+  IFS=$'\n' read -r -d '' -a result < <(curl "${completions_url}" \
        -s -w "\n%{http_code}" \
        -H "Content-Type: application/json" \
        -H "Accept-Encoding: identity" \
@@ -236,8 +237,8 @@ perform_openai_request() {
   response="${response_array[*]}"
 
   if [ "${httpStatus}" -ne 200 ]; then
-    echo "Error: Received HTTP status ${httpStatus}"
-    echo "${response}" | jq .error.message --raw-output
+    echo "Error: Received HTTP status ${httpStatus} while trying to access ${completions_url}"
+    echo "${response}"
     exit 1
   else
     message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
