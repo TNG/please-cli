@@ -175,4 +175,4 @@ You can also apply for GPT4 API access here: https://openai.com/waitlist/gpt-4-a
 
 Please CLI is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
 
-Copyright 2023 TNG Technology Consulting GmbH
+Copyright 2025 TNG Technology Consulting GmbH
