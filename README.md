@@ -165,11 +165,16 @@ If you receive the following error message:
 
 ```bash
 Error: Received HTTP status 404
-The model: gpt-4 does not exist
 ```
 
-The API key you are using is not authorized to use GPT-4. You may also want to use the `--legacy` flag to use GPT-3.5 instead.
-You can also apply for GPT4 API access here: https://openai.com/waitlist/gpt-4-api
+There probably is an issue with your base URL. Please check the OpenAI API base URL in your environment variables.
+
+
+```bash
+Error: Received HTTP status 401
+```
+
+There probably is an issue with your OpenAI API key. Please check the OpenAI API key in your environment variables.
 
 ## License
 
