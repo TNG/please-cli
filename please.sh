@@ -283,23 +283,23 @@ choose_action() {
           esac
         fi
         ;;
-      i)
+      "i"|"I")
         selected_option_index=0
         display_menu
         break
         ;;
 
-      c)
+      "c"|"C")
         selected_option_index=1
         display_menu
         break
         ;;
-      q)
+      "q"|"Q")
         selected_option_index=2
         display_menu
         break
         ;;
-      a)
+      "a"|"A")
         selected_option_index=3
         display_menu
         break
