@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup dpkg-dev
-        run: sudo apt-get install -y dpkg-dev gnupg2 dpkg-sig apt-utils
+        run: sudo apt-get install -y dpkg-dev gnupg2 devscripts debsigs apt-utils
 
       - name: Setup GPG
         env:
@@ -105,7 +105,7 @@ jobs:
           Description: An AI helper script to create CLI commands" > DEBIAN/control
           cd ..
           dpkg-deb --build please
-          dpkg-sig --sign builder please.deb
+          debsigs --sign=origin please.deb
 
       - name: Checkout apt repository
         uses: actions/checkout@v2
