@@ -113,7 +113,7 @@ function store_api_key() {
 }
 
 display_version() {
-  echo "Please vVERSION_NUMBER"
+  echo "Please v0.4.3"
 }
 
 display_help() {
