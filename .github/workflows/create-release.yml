@@ -139,20 +139,17 @@ jobs:
   create_arch_package:
     runs-on: ubuntu-latest
     container:
-      image: archlinux:latest
+      # Includes tools needed by makepkg
+      image: archlinux:base-devel
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Setup ssh for aur
-        run: |
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > ~/.ssh/authorized_keys
-
       - name: Update aur PKGBUILD
         run: |
           pacman -Syu --noconfirm
+          # install anything that is needed for setting up aur repo
           pacman -S --noconfirm openssh git
 
           useradd -m -G wheel runner
@@ -161,9 +158,10 @@ jobs:
           chown -R runner:runner .
 
           su runner -c '
-              # Used by PKGBUILD internally 
-              VERSION=${GITHUB_REF#refs/tags/v}
-              export VERSION
+              set -e
+              # Used by PKGBUILD internally
+              export TAG="${{ github.ref }}"
+              export VERSION=$(echo "${TAG}" | sed 's/^refs\/tags\/v//')
 
               mkdir -p ~/.ssh
               echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
@@ -178,7 +176,8 @@ jobs:
               cp PKGBUILD aur/
               cd aur/
               makepkg --printsrcinfo > .SRCINFO
-              makepkg
+              # Install any needed dependencies and create the package
+              makepkg -s --noconfirm
 
               git config user.name "info@tngtech.com"
               git config user.email "TNG Technology Consulting"
