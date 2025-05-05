@@ -137,7 +137,9 @@ jobs:
           git push
 
   create_arch_package:
-    runs-on: archarm-latest
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
 
     steps:
       - name: Checkout source code
@@ -150,25 +152,43 @@ jobs:
 
       - name: Update aur PKGBUILD
         run: |
-          export TAG="${{ github.ref }}"
-          export VERSION=$(echo "${TAG}" | sed 's/^refs\/tags\/v//')
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm openssh git
 
-          git clone ssh://aur@aur.archlinux.org/please-cli.git
-          cd please-cli
+          useradd -m -G wheel runner
+          echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-          cp ../PKGBUILD PKGBUILD
-          makepkg
-          makepkg --printsrcinfo > .SRCINFO
+          chown -R runner:runner .
 
-          git config --local user.email "info@tngtech.com"
-          git config --local user.name "TNG Technology Consulting"
-          git add .
-          git commit -m "Update version to $VERSION"
-          git push
+          su runner -c '
+              # Used by PKGBUILD internally 
+              VERSION=${GITHUB_REF#refs/tags/v}
+              export VERSION
+
+              mkdir -p ~/.ssh
+              echo "${{ secrets.AUR_SSH_KEY }}" > ~/.ssh/aur
+              chmod 600 ~/.ssh/aur
+              echo "Host aur.archlinux.org" >> ~/.ssh/config
+              echo "  IdentityFile ~/.ssh/aur" >> ~/.ssh/config
+              echo "  User aur" >> ~/.ssh/config
+              ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+
+              git clone ssh://aur@aur.archlinux.org/please-cli.git aur
+
+              cp PKGBUILD aur/
+              cd aur/
+              makepkg --printsrcinfo > .SRCINFO
+              makepkg
+
+              git config user.name "info@tngtech.com"
+              git config user.email "TNG Technology Consulting"
+              git add PKGBUILD .SRCINFO
+              git commit -m "release $VERSION"
+              git push origin master
+          '
 
       - name: Upload built package
         uses: actions/upload-artifact@v4
         with:
           name: please-cli arch package ${{ github.ref }}
           path: please-cli/please-cli-*.pkg.tar
-
