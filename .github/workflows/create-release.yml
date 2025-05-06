@@ -175,9 +175,10 @@ jobs:
 
               cp PKGBUILD aur/
               cd aur/
-              makepkg --printsrcinfo > .SRCINFO
               # Install any needed dependencies and create the package
               makepkg -s --noconfirm
+              # Needs to be run after makepkg
+              makepkg --printsrcinfo > .SRCINFO
 
               git config user.name "info@tngtech.com"
               git config user.email "TNG Technology Consulting"
