@@ -105,6 +105,21 @@ With [paru](https://github.com/Morganamilo/paru):
 paru -S please-cli
 ```
 
+#### Using aurutils
+
+If you're using [aurutils](https://github.com/aurutils/aurutils) to manage AUR packages:
+
+```bash
+# First, ensure you have an aurutils repository set up
+# If not, follow the aurutils setup instructions first
+
+# Sync the AUR database and download the package
+aur sync please-cli
+
+# Install the package from your local repository
+sudo pacman -S please-cli
+```
+
 #### Manual installation
 Alternatively, you can build the package from source via
 ```bash
