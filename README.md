@@ -93,6 +93,19 @@ sudo apt-get install -f
 ### arch
 The latest release is in the AUR under the name [please-cli](https://aur.archlinux.org/packages/please-cli). It can be installed [manually](https://wiki.archlinux.org/title/Arch_User_Repository) or with [a helper](https://wiki.archlinux.org/title/AUR_helpers).
 
+#### Using an AUR helper (recommended)
+
+With [yay](https://github.com/Jguer/yay):
+```bash
+yay -S please-cli
+```
+
+With [paru](https://github.com/Morganamilo/paru):
+```bash
+paru -S please-cli
+```
+
+#### Manual installation
 Alternatively, you can build the package from source via
 ```bash
 wget https://raw.githubusercontent.com/TNG/please-cli/main/PKGBUILD
