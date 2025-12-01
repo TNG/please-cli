@@ -187,6 +187,11 @@ get_key_from_keychain() {
   PLEASE_OPENAI_API_KEY="${key}"
 }
 
+strip_reasoning() {
+  # Strip think blocks (both inline and multiline)
+  echo "$1" | sed 's/<think>.*<\/think>//g' | sed '/<think>/,/<\/think>/d'
+}
+
 get_command() {
   role="You translate the given input into a Linux command. You may not use natural language, but only a Linux shell command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
@@ -199,6 +204,7 @@ get_command() {
   debug "Sending request to OpenAI API: ${payload}"
 
   perform_openai_request
+  message=$(strip_reasoning "$message")
   command="${message}"
 }
 
