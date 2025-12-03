@@ -476,15 +476,15 @@ function main() {
   check_key
 
   get_command
+
+  if test "${command}" = "${fail_msg}"; then
+    exit 1
+  fi
   if [ "${explain}" -eq 1 ]; then
     explain_command
   fi
 
   print_option
-
-  if test "${command}" = "${fail_msg}"; then
-    exit 1
-  fi
 
   init_questions
   choose_action
