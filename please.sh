@@ -30,6 +30,9 @@ fail_msg="echo 'I do not know. Please rephrase your question.'"
 
 declare -a qaMessages=()
 
+user_os="$(uname -s)"
+user_shell="$(basename "$SHELL")"
+
 check_args() {
   while [[ $# -gt 0 ]]; do
     case "${1}" in
@@ -193,8 +196,7 @@ strip_reasoning() {
 }
 
 get_command() {
-  role="You translate the given input into a Linux command. You may not use natural language, but only a Linux shell command as an answer.
-  Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
+  role="You translate the given input into a shell command for the user's system. The user's operating system is '${user_os}', and their shell is '${user_shell}'. You may not use natural language, but only a shell command as an answer. Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
   payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
     model: "'"$model"'",
@@ -417,7 +419,7 @@ copy_to_clipboard() {
 }
 
 init_questions() {
-  systemPrompt="You will give answers in the context of the command \"${command}\" which is a Linux bash command related to the prompt \"${commandDescription}\". Be precise and succinct, answer in full sentences, no lists, no markdown."
+  systemPrompt="You will give answers in the context of the command \"${command}\" which is a shell command for the user's system (OS: '${user_os}', shell: '${user_shell}') related to the prompt \"${commandDescription}\". Be precise and succinct, answer in full sentences, no lists, no markdown."
   escapedPrompt=$(printf %s "${systemPrompt}" | jq -srR '@json')
 
   qaMessages+=("{ \"role\": \"system\", \"content\": ${escapedPrompt} }")
