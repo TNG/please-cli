@@ -192,8 +192,24 @@ strip_reasoning() {
   echo "$1" | sed 's/<think>.*<\/think>//g' | sed '/<think>/,/<\/think>/d'
 }
 
+get_os() {
+  unameOut=$(uname -s)
+  case "$unameOut" in
+  Darwin)
+    os="MacOS"
+    ;;
+  Linux)
+    ;&
+  *)
+    # Any windows solutions are assumed to be Linux compatibla
+    os="Linux"
+    ;;
+  esac
+}
+
 get_command() {
-  role="You translate the given input into a Linux command. You may not use natural language, but only a Linux shell command as an answer.
+  os=get_os
+  role="You translate the given input into a bash command for $os. You may not use natural language, but only a bash command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
   payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
