@@ -405,8 +405,10 @@ copy_to_clipboard() {
       else
         if command -v xclip &> /dev/null; then
           echo -n "${command}" | xclip -selection clipboard
+        elif command -v xsel &> /dev/null; then
+          echo -n "${command}" | xsel --clipboard --input
         else
-          echo "xclip not installed. Exiting."
+          echo "Neither xclip nor xsel is installed. Exiting."
           exit 1
         fi
       fi

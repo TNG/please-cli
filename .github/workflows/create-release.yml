@@ -102,7 +102,7 @@ jobs:
           Architecture: all
           Maintainer: TNG Technology Consulting GmbH <info@tngtech.com>
           Depends: curl, jq, libsecret-tools
-          Suggests: xclip, wl-clipboard
+          Suggests: xclip, xsel, wl-clipboard
           Description: An AI helper script to create CLI commands" > DEBIAN/control
           cd ..
           dpkg-deb --build please
