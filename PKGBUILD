@@ -36,6 +36,12 @@ prepare() {
 
   # Patching the install command in an error message.
   sed -i -e 's/sudo apt install libsecret-tools/sudo pacman -S libsecret/' 'please.sh'
+
+  # Replace VERSION_NUMBER placeholder with the actual version derived from git tags.
+  _pkgver=$(git tag --sort=v:refname | tail -n1)
+  if [ -n "$_pkgver" ]; then
+    sed -i -e "s/VERSION_NUMBER/${_pkgver#v}/" 'please.sh'
+  fi
 }
 
 package() {

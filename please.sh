@@ -114,8 +114,27 @@ function store_api_key() {
     done
 }
 
+_version="VERSION_NUMBER"
+
+_script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 display_version() {
-  echo "Please vVERSION_NUMBER"
+  # The placeholder VERSION_NUMBER is replaced with the actual version by the
+  # bump-version CI workflow via sed. If it is still the literal string, the
+  # script is running from source or an unpatched install — fall back to git tags.
+  if [ "$_version" = "VERSION_NUMBER" ]; then
+    if [ -d "${_script_dir}/.git" ]; then
+      local _tag
+      _tag=$(cd "$_script_dir" && git tag --sort=v:refname 2>/dev/null | tail -n1)
+      if [ -n "$_tag" ]; then
+        echo "Please v${_tag#v}"
+        return
+      fi
+    fi
+    echo "Please vVERSION_NUMBER"
+  else
+    echo "Please v$_version"
+  fi
 }
 
 display_help() {
