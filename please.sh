@@ -2,7 +2,7 @@
 
 set -uo pipefail
 
-model=${PLEASE_OPENAI_CHAT_MODEL:-'gpt-4-turbo'}
+model=${PLEASE_OPENAI_CHAT_MODEL:-'gpt-6-luna'}
 options=("[I] Invoke" "[C] Copy to clipboard" "[Q] Ask a question" "[A] Abort" )
 number_of_options=${#options[@]}
 keyName="OPENAI_API_KEY"
