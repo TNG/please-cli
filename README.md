@@ -35,7 +35,7 @@ You may then:
 
 ### Parameters
 - `-e` or `--explanation` will explain the command for you
-- `-l` or `--legacy` will use the GPT3.5 AI model instead of GPT-6 Luna (in case you don't have API access to GPT-6 Luna)
+- `-l` or `--legacy` will use the GPT-5.6 Luna AI model instead of GPT-6 Luna (in case you don't have API access to GPT-6 Luna)
 - `--debug` will display additional output
 - `-a` or `--api-key` will store your API key in the local keychain
 - `-m` or `--model` will query ChatGPT with the specified model

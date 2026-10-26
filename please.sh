@@ -40,7 +40,7 @@ check_args() {
         shift
         ;;
       -l|--legacy)
-        model="gpt-3.5-turbo"
+        model="gpt-5.6-luna"
         shift
         ;;
       --debug)
