@@ -105,8 +105,19 @@ function store_api_key() {
                 security add-generic-password -a "${USER}" -s "${keyName}" -w "${apiKey}" -U
                 PLEASE_OPENAI_API_KEY=$(security find-generic-password -a "${USER}" -s "${keyName}" -w)
             else
-                echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"
-                PLEASE_OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+                if ! command -v secret-tool &> /dev/null; then
+                    echo "Error: secret-tool is not installed. Install libsecret-tools (e.g. 'sudo apt install libsecret-tools') or use the PLEASE_OPENAI_API_KEY environment variable instead." >&2
+                    exit 1
+                fi
+                stored_key=""
+                if echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"; then
+                    stored_key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+                fi
+                if [ "${stored_key}" != "${apiKey}" ]; then
+                    echo "Error: Could not store the API key in the keychain. Set the PLEASE_OPENAI_API_KEY environment variable instead." >&2
+                    exit 1
+                fi
+                PLEASE_OPENAI_API_KEY="${stored_key}"
             fi
             echo "API key stored successfully and set as a global variable."
             break
