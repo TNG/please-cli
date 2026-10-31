@@ -27,6 +27,15 @@ checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 openai_api_base=${PLEASE_OPENAI_API_BASE:-${OPENAI_API_BASE:-${OPENAI_URL:-"https://api.openai.com"}}}
 openai_api_version=${PLEASE_OPENAI_API_VERSION:-${OPENAI_API_VERSION:-"v1"}}
 openai_invocation_url=${openai_api_base}/${openai_api_version}
+max_completion_tokens=${PLEASE_MAX_COMPLETION_TOKENS:-1000}
+if ! [[ "${max_completion_tokens}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: PLEASE_MAX_COMPLETION_TOKENS must be a positive integer (got: '${PLEASE_MAX_COMPLETION_TOKENS:-}')." >&2
+  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    exit 1
+  else
+    return 1
+  fi
+fi
 
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
@@ -198,7 +207,8 @@ get_command() {
   role="You translate the given input into a CLI command for OS: ${current_os}, shell: ${current_shell}. You may not use natural language, but only a shell command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
-  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
+  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output --argjson max_completion_tokens "${max_completion_tokens}" '{
+    max_completion_tokens: $max_completion_tokens,
     model: "'"$model"'",
     messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
   }')
@@ -216,8 +226,8 @@ explain_command() {
   else
     prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Be precise and succinct."
 
-    payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
-      max_completion_tokens: 500,
+    payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output --argjson max_completion_tokens "${max_completion_tokens}" '{
+      max_completion_tokens: $max_completion_tokens,
       model: "'"$model"'",
       messages: [{ role: "user", content: . }]
     }')
@@ -250,6 +260,12 @@ perform_openai_request() {
     exit 1
   else
     message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
+    finish_reason=$(echo "${response}" | jq '.choices[0].finish_reason' --raw-output)
+    if [ "${finish_reason}" = "length" ]; then
+      echo "Warning: The model response was cut off because the completion token limit was reached." >&2
+      echo "With reasoning models the limit may be exhausted before any answer text is produced." >&2
+      echo "Increase the limit via PLEASE_MAX_COMPLETION_TOKENS (currently: ${max_completion_tokens})." >&2
+    fi
   fi
 }
 
@@ -447,8 +463,8 @@ answer_question_about_command() {
   qaMessages+=("{ \"role\": \"user\", \"content\": ${escapedPrompt} }")
   messagesJson='['$(join_by , "${qaMessages[@]}")']'
 
-  payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" '{
-    max_completion_tokens: 1000,
+  payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" --argjson max_completion_tokens "${max_completion_tokens}" '{
+    max_completion_tokens: $max_completion_tokens,
     model: "'"$model"'",
     messages: $messagesJson
   }')

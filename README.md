@@ -186,6 +186,7 @@ You can use the more specific environment variables if you do not want to change
 * `PLEASE_OPENAI_API_BASE` - The base URL for the OpenAI API
 * `PLEASE_OPENAI_API_VERSION` - The version of the OpenAI API
 * `PLEASE_OPENAI_CHAT_MODEL` - The chat model to use
+* `PLEASE_MAX_COMPLETION_TOKENS` - Maximum number of completion tokens per API request (default: 1000)
 
 ## Troubleshooting
 
