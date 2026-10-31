@@ -217,7 +217,7 @@ explain_command() {
     prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Be precise and succinct."
 
     payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
-      max_tokens: 100,
+      max_completion_tokens: 500,
       model: "'"$model"'",
       messages: [{ role: "user", content: . }]
     }')
@@ -448,7 +448,7 @@ answer_question_about_command() {
   messagesJson='['$(join_by , "${qaMessages[@]}")']'
 
   payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" '{
-    max_tokens: 200,
+    max_completion_tokens: 1000,
     model: "'"$model"'",
     messages: $messagesJson
   }')
