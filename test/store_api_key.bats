@@ -37,7 +37,10 @@ requires_linux() {
 @test "store_api_key succeeds and reports success when secret-tool works" {
   requires_linux
   make_secret_tool_stub
-  run env STUB_DIR="$STUB_DIR" PATH="$STUB_DIR" bash -c "source '$PLEASE_EXE'; printf 'y\n\nsk-test-123\n' | store_api_key"
+  # The stub dir is prepended to PATH *inside* bash -c (after `bash` itself has
+  # been resolved), so the stub shadows any system secret-tool but system
+  # binaries like cat stay available.
+  run env STUB_DIR="$STUB_DIR" SC_EXIT=0 bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR:\$PATH\"; printf 'y\n\nsk-test-123\n' | store_api_key"
   [ "$status" -eq 0 ]
   [[ "$output" == *"API key stored successfully"* ]]
   [ -s "$STUB_DIR/stored" ]
@@ -45,7 +48,9 @@ requires_linux() {
 
 @test "store_api_key fails clearly when secret-tool is not installed" {
   requires_linux
-  run env PATH="$STUB_DIR" bash -c "source '$PLEASE_EXE'; printf 'y\n\nsk-test-123\n' | store_api_key"
+  # Empty stub dir as the *entire* PATH inside the test shell: secret-tool
+  # cannot be found anywhere, regardless of what the runner has installed.
+  run env STUB_DIR="$STUB_DIR" bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR\"; printf 'y\n\nsk-test-123\n' | store_api_key"
   [ "$status" -eq 1 ]
   [[ "$output" == *"secret-tool is not installed"* ]]
 }
@@ -53,7 +58,7 @@ requires_linux() {
 @test "store_api_key fails clearly when secret-tool store fails" {
   requires_linux
   make_secret_tool_stub
-  run env SC_EXIT=1 STUB_DIR="$STUB_DIR" PATH="$STUB_DIR" bash -c "source '$PLEASE_EXE'; printf 'y\n\nsk-test-123\n' | store_api_key"
+  run env STUB_DIR="$STUB_DIR" SC_EXIT=1 bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR:\$PATH\"; printf 'y\n\nsk-test-123\n' | store_api_key"
   [ "$status" -eq 1 ]
   [[ "$output" == *"Could not store the API key"* ]]
   [[ "$output" != *"API key stored successfully"* ]]

@@ -109,13 +109,15 @@ function store_api_key() {
                     echo "Error: secret-tool is not installed. Install libsecret-tools (e.g. 'sudo apt install libsecret-tools') or use the PLEASE_OPENAI_API_KEY environment variable instead." >&2
                     exit 1
                 fi
+                stored_key=""
                 if echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"; then
-                    PLEASE_OPENAI_API_KEY=$(secret-tool lookup username "${USER}" key_name "${keyName}")
+                    stored_key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
                 fi
-                if [ -z "${PLEASE_OPENAI_API_KEY}" ]; then
+                if [ -z "${stored_key}" ]; then
                     echo "Error: Could not store the API key in the keychain. Set the PLEASE_OPENAI_API_KEY environment variable instead." >&2
                     exit 1
                 fi
+                PLEASE_OPENAI_API_KEY="${stored_key}"
             fi
             echo "API key stored successfully and set as a global variable."
             break
