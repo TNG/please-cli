@@ -8,7 +8,8 @@ arch=('any')
 license=('Apache')
 depends=('bash' 'jq' 'curl')
 optdepends=('libsecret: store OpenApi key in keychain'
-    'xclip: copy command to clipboard on X'
+    'xclip: copy command to clipboard on X (preferred)'
+    'xsel: copy command to clipboard on X (fallback)'
     'wl-clipboard: copy command to clipboard on Wayland')
 makedepends=('sed' 'git')
 install="${pkgname}.install"
