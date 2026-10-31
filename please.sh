@@ -28,6 +28,14 @@ openai_api_base=${PLEASE_OPENAI_API_BASE:-${OPENAI_API_BASE:-${OPENAI_URL:-"http
 openai_api_version=${PLEASE_OPENAI_API_VERSION:-${OPENAI_API_VERSION:-"v1"}}
 openai_invocation_url=${openai_api_base}/${openai_api_version}
 max_completion_tokens=${PLEASE_MAX_COMPLETION_TOKENS:-1000}
+if ! [[ "${max_completion_tokens}" =~ ^[1-9][0-9]*$ ]]; then
+  echo "Error: PLEASE_MAX_COMPLETION_TOKENS must be a positive integer (got: '${PLEASE_MAX_COMPLETION_TOKENS:-}')." >&2
+  if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    exit 1
+  else
+    return 1
+  fi
+fi
 
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
