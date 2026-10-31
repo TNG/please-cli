@@ -113,7 +113,7 @@ function store_api_key() {
                 if echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"; then
                     stored_key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
                 fi
-                if [ -z "${stored_key}" ]; then
+                if [ "${stored_key}" != "${apiKey}" ]; then
                     echo "Error: Could not store the API key in the keychain. Set the PLEASE_OPENAI_API_KEY environment variable instead." >&2
                     exit 1
                 fi
