@@ -199,7 +199,8 @@ get_command() {
   role="You translate the given input into a CLI command for OS: ${current_os}, shell: ${current_shell}. You may not use natural language, but only a shell command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
-  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
+  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output --argjson max_completion_tokens "${max_completion_tokens}" '{
+    max_completion_tokens: $max_completion_tokens,
     model: "'"$model"'",
     messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
   }')
