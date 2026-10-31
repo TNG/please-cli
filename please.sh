@@ -251,6 +251,12 @@ perform_openai_request() {
     exit 1
   else
     message=$(echo "${response}" | jq '.choices[0].message.content' --raw-output)
+    finish_reason=$(echo "${response}" | jq '.choices[0].finish_reason' --raw-output)
+    if [ "${finish_reason}" = "length" ]; then
+      echo "Warning: The model response was cut off because the completion token limit was reached." >&2
+      echo "With reasoning models the limit may be exhausted before any answer text is produced." >&2
+      echo "Increase the limit via PLEASE_MAX_COMPLETION_TOKENS (currently: ${max_completion_tokens})." >&2
+    fi
   fi
 }
 
