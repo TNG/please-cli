@@ -27,6 +27,7 @@ checkMark="\x1B[31m\xE2\x9C\x93\x1B[0m"
 openai_api_base=${PLEASE_OPENAI_API_BASE:-${OPENAI_API_BASE:-${OPENAI_URL:-"https://api.openai.com"}}}
 openai_api_version=${PLEASE_OPENAI_API_VERSION:-${OPENAI_API_VERSION:-"v1"}}
 openai_invocation_url=${openai_api_base}/${openai_api_version}
+max_completion_tokens=${PLEASE_MAX_COMPLETION_TOKENS:-1000}
 
 fail_msg="echo 'I do not know. Please rephrase your question.'"
 
@@ -216,8 +217,8 @@ explain_command() {
   else
     prompt="Explain the step of the command that answers the following ${command}: ${commandDescription}\n. Be precise and succinct."
 
-    payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output '{
-      max_completion_tokens: 500,
+    payload=$(printf %s "$prompt" | jq --slurp --raw-input --compact-output --argjson max_completion_tokens "${max_completion_tokens}" '{
+      max_completion_tokens: $max_completion_tokens,
       model: "'"$model"'",
       messages: [{ role: "user", content: . }]
     }')
@@ -447,8 +448,8 @@ answer_question_about_command() {
   qaMessages+=("{ \"role\": \"user\", \"content\": ${escapedPrompt} }")
   messagesJson='['$(join_by , "${qaMessages[@]}")']'
 
-  payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" '{
-    max_completion_tokens: 1000,
+  payload=$(jq --null-input --compact-output --argjson messagesJson "${messagesJson}" --argjson max_completion_tokens "${max_completion_tokens}" '{
+    max_completion_tokens: $max_completion_tokens,
     model: "'"$model"'",
     messages: $messagesJson
   }')
