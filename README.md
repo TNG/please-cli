@@ -8,7 +8,7 @@ An [AI helper script to create CLI commands](https://github.com/TNG/please-cli/)
 please <command description>
 ```
 
-This will call GPT to generate a Linux command based on your input.
+This will call GPT to generate a CLI command based on your input.
 
 ### Examples
 
@@ -31,8 +31,6 @@ You may then:
 - Ask a question about the command (pressing Q)
 - Abort (pressing A)
 
-```bash
-
 ### Parameters
 - `-e` or `--explanation` will explain the command for you
 - `-l` or `--legacy` will use the GPT-5.6 Luna AI model instead of GPT-6 Luna (in case you don't have API access to GPT-6 Luna)
@@ -41,13 +39,12 @@ You may then:
 - `-m` or `--model` will query ChatGPT with the specified model
 - `-v` or `--version` will show the current version
 - `-h` or `--help` will show the help message
-```
 
 ## Installation
 
 ### brew
 
-Using Homebrew (ugrades will be available via `brew upgrade please`)
+Using Homebrew (upgrades will be available via `brew upgrade please`)
 
 ```
 brew tap TNG/please
@@ -141,7 +138,7 @@ sudo chmod +x /usr/local/bin/please
 
 ## Prerequisites
 
-You need an OpenAI API key. You can get one here: https://beta.openai.com/. Once logged in, click your account in the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
+You need an OpenAI API key. You can get one here: https://platform.openai.com/api-keys. Once logged in, click your account in the top right corner and select "View API Keys". You can then create a new key using the "Create new secret key" button.
 
 The API key needs to be set:
 
@@ -165,7 +162,7 @@ export OPENAI_API_KEY=<YOUR_API_KEY>
 To store your API key yourself using secret-tool, run
 
 ```bash
-secret-tool store --label="OPENAI_API_KEY" username "${USER}" key_name OPENAI_API_KEY apiKey "${apiKey}"
+echo "<YOUR_API_KEY>" | secret-tool store --label="OPENAI_API_KEY" username "${USER}" key_name OPENAI_API_KEY
 ```
 
 To store your API key using macOS keychain, run
@@ -208,4 +205,4 @@ There probably is an issue with your OpenAI API key. Please check the OpenAI API
 
 Please CLI is published under the Apache License 2.0, see http://www.apache.org/licenses/LICENSE-2.0 for details.
 
-Copyright 2025 TNG Technology Consulting GmbH
+Copyright 2026 TNG Technology Consulting GmbH
