@@ -207,8 +207,7 @@ get_command() {
   role="You translate the given input into a CLI command for OS: ${current_os}, shell: ${current_shell}. You may not use natural language, but only a shell command as an answer.
   Do not use markdown. Do not quote the whole output. If you do not know the answer, answer with \\\"${fail_msg}\\\"."
 
-  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output --argjson max_completion_tokens "${max_completion_tokens}" '{
-    max_completion_tokens: $max_completion_tokens,
+  payload=$(printf %s "$commandDescription" | jq --slurp --raw-input --compact-output '{
     model: "'"$model"'",
     messages: [{ role: "system", content: "'"$role"'" }, { role: "user", content: . }]
   }')
@@ -264,7 +263,9 @@ perform_openai_request() {
     if [ "${finish_reason}" = "length" ]; then
       echo "Warning: The model response was cut off because the completion token limit was reached." >&2
       echo "With reasoning models the limit may be exhausted before any answer text is produced." >&2
-      echo "Increase the limit via PLEASE_MAX_COMPLETION_TOKENS (currently: ${max_completion_tokens})." >&2
+      if printf '%s' "$payload" | jq -e 'has("max_completion_tokens")' > /dev/null; then
+        echo "Increase the limit via PLEASE_MAX_COMPLETION_TOKENS (currently: ${max_completion_tokens})." >&2
+      fi
     fi
   fi
 }
