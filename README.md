@@ -162,7 +162,7 @@ export OPENAI_API_KEY=<YOUR_API_KEY>
 To store your API key yourself using secret-tool, run
 
 ```bash
-echo "<YOUR_API_KEY>" | secret-tool store --label="OPENAI_API_KEY" username "${USER}" key_name OPENAI_API_KEY
+printf '%s' "<YOUR_API_KEY>" | secret-tool store --label="OPENAI_API_KEY" username "${USER}" key_name OPENAI_API_KEY
 ```
 
 To store your API key using macOS keychain, run
