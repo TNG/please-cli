@@ -110,7 +110,7 @@ function store_api_key() {
                     exit 1
                 fi
                 stored_key=""
-                if echo -e "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"; then
+                if printf '%s' "${apiKey}" | secret-tool store --label="${keyName}" username "${USER}" key_name "${keyName}"; then
                     stored_key=$(secret-tool lookup username "${USER}" key_name "${keyName}")
                 fi
                 if [ "${stored_key}" != "${apiKey}" ]; then
