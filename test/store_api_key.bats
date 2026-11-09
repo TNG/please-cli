@@ -19,8 +19,14 @@ if [ "$1" = "store" ]; then
   cat > "$STORE"
   exit "${SC_EXIT:-0}"
 fi
-if [ "$1" = "lookup" ] && [ -f "$STORE" ]; then
-  cat "$STORE"
+if [ "$1" = "lookup" ]; then
+  # SC_LOOKUP, when set (even to empty), overrides the stored value so tests
+  # can simulate a stale, different, or empty lookup result.
+  if [ "${SC_LOOKUP+x}" = x ]; then
+    printf '%s' "${SC_LOOKUP}"
+  elif [ -f "$STORE" ]; then
+    cat "$STORE"
+  fi
 fi
 STUB
   chmod +x "$STUB_DIR/secret-tool"
@@ -59,6 +65,24 @@ requires_linux() {
   requires_linux
   make_secret_tool_stub
   run env STUB_DIR="$STUB_DIR" SC_EXIT=1 bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR:\$PATH\"; printf 'y\n\nsk-test-123\n' | store_api_key"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Could not store the API key"* ]]
+  [[ "$output" != *"API key stored successfully"* ]]
+}
+
+@test "store_api_key fails when the lookup returns a different key" {
+  requires_linux
+  make_secret_tool_stub
+  run env SC_LOOKUP="sk-some-old-key" STUB_DIR="$STUB_DIR" SC_EXIT=0 bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR:\$PATH\"; printf 'y\n\nsk-test-123\n' | store_api_key"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"Could not store the API key"* ]]
+  [[ "$output" != *"API key stored successfully"* ]]
+}
+
+@test "store_api_key fails when the lookup returns nothing" {
+  requires_linux
+  make_secret_tool_stub
+  run env SC_LOOKUP= STUB_DIR="$STUB_DIR" SC_EXIT=0 bash -c "source '$PLEASE_EXE'; PATH=\"\$STUB_DIR:\$PATH\"; printf 'y\n\nsk-test-123\n' | store_api_key"
   [ "$status" -eq 1 ]
   [[ "$output" == *"Could not store the API key"* ]]
   [[ "$output" != *"API key stored successfully"* ]]
