@@ -462,10 +462,7 @@ ask_question() {
   read -r question
   answer_question_about_command
 
-  echo "${answer}"
-
-  # shellcheck disable=SC2059
-  printf "${checkMark} ${answer}\n"
+  printf '%b %s\n' "${checkMark}" "${answer}"
 
   choose_action
   act_on_action
